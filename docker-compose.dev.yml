@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database Service
+  db:
+    image: postgres:16-alpine
+    container_name: cmsapp_db_dev
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-cmsdb}
+      POSTGRES_USER: ${DATABASE_USER:-cmsuser}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-cmspass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-cmsuser}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cmsapp_network
+
+  # Django Development Server
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: cmsapp_web_dev
+    command: >
+      bash -c "python manage.py migrate &&
+               python manage.py collectstatic --noinput &&
+               python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - DATABASE_HOST=db
+      - DATABASE_NAME=${DATABASE_NAME:-cmsdb}
+      - DATABASE_USER=${DATABASE_USER:-cmsuser}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-cmspass}
+      - DJANGO_SETTINGS_MODULE=cmsapp.settings
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - cmsapp_network
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+
+networks:
+  cmsapp_network:
+    driver: bridge

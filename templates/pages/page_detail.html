@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page.title }} - CMS{% endblock %}
+
+{% block content %}
+<div class="page-detail">
+    {% if page.featured_image %}
+    <div class="mb-4">
+        <img src="{{ page.featured_image.url }}" alt="{{ page.title }}" class="img-fluid rounded">
+    </div>
+    {% endif %}
+    
+    <h1 class="mb-4">{{ page.title }}</h1>
+    
+    {% if page.description %}
+    <p class="lead text-muted">{{ page.description }}</p>
+    {% endif %}
+    
+    <div class="page-content mb-5">
+        {% if page.content %}
+        <div class="content-main">
+            {{ page.content|safe }}
+        </div>
+        {% endif %}
+        
+        {% if blocks %}
+        <div class="blocks-section mt-4">
+            {% for block in blocks %}
+            <div class="block block-{{ block.block_type }} mb-4">
+                {% if block.title %}
+                <h3>{{ block.title }}</h3>
+                {% endif %}
+                <div class="block-content">
+                    {{ block.content|safe }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if images %}
+    <div class="page-gallery mt-5">
+        <h3>Gallery</h3>
+        <div class="row">
+            {% for image in images %}
+            <div class="col-md-4 mb-3">
+                <figure class="figure">
+                    <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" class="figure-img img-fluid rounded">
+                    {% if image.caption %}
+                    <figcaption class="figure-caption">{{ image.caption }}</figcaption>
+                    {% endif %}
+                </figure>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="page-meta text-muted mt-5 pt-3 border-top">
+        <small>
+            {% if page.author %}Published by {{ page.author }}{% endif %}
+            {% if page.published_at %} on {{ page.published_at|date:"F j, Y" }}{% endif %}
+        </small>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+# .dockerignore - Reduce Docker image size
+
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv
+.env
+.env.local
+.git
+.gitignore
+.dockerignore
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+node_modules/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+.pytest_cache/
+README.md
+CONTRIBUTING.md
+DEPLOYMENT.md
+QUICKSTART.md
+*.md
+LICENSE
+
+# Keep media and static in some scenarios
+# media/
+# staticfiles/
+# static/
