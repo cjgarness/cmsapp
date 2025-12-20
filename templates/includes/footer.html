@@ -2,22 +2,12 @@
     <div class="container">
         <div class="row">
             <div class="col-md-4">
-                <h5>About</h5>
-                <p>Django CMS - A modern, containerized content management system.</p>
+                Quick Links : <a href="{% url 'pages:homepage' %}" class="text-white-50">Home</a> - <a href="{% url 'pages:page_list' %}" class="text-white-50">Pages</a>
             </div>
             <div class="col-md-4">
-                <h5>Quick Links</h5>
-                <ul class="list-unstyled">
-                    <li><a href="{% url 'pages:homepage' %}" class="text-white-50">Home</a></li>
-                    <li><a href="{% url 'pages:page_list' %}" class="text-white-50">Pages</a></li>
-                </ul>
+                Contact:  <a href="mailto:info@cmsapp.com" class="text-white-50">info@cmsapp.com</a>
             </div>
-            <div class="col-md-4">
-                <h5>Contact</h5>
-                <p class="text-white-50">info@cmsapp.com</p>
-            </div>
+            <div class="col-md-4">2025 AltusPath LLC. All rights reserved</div>
         </div>
-        <hr class="bg-white-50">
-        <p class="text-center text-white-50 mb-0">&copy; 2025 CMS Application. All rights reserved.</p>
-    </div>
+   </div>
 </footer>
