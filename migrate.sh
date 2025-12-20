@@ -17,7 +17,7 @@ fi
 case "$2" in
     make)
         echo "Creating migrations..."
-        $COMPOSE_CMD exec web python manage.py makemigrations
+        $COMPOSE_CMD exec web python manage.py makemigrations core media pages templates
         ;;
     migrate)
         echo "Applying migrations..."

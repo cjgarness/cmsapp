@@ -21,7 +21,7 @@ set COMMAND=%2
 
 if "!COMMAND!"=="make" (
     echo Creating migrations...
-    !COMPOSE_CMD! exec web python manage.py makemigrations
+    !COMPOSE_CMD! exec web python manage.py makemigrations core media pages templates
 ) else if "!COMMAND!"=="migrate" (
     echo Applying migrations...
     !COMPOSE_CMD! exec web python manage.py migrate
