@@ -11,6 +11,11 @@ class PageListView(ListView):
     
     def get_queryset(self):
         return Page.objects.filter(status='published', show_in_menu=True).order_by('-published_at')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['navbar_pages'] = Page.objects.filter(show_in_navbar=True, status='published')
+        return context
 
 
 class PageDetailView(DetailView):
@@ -28,6 +33,7 @@ class PageDetailView(DetailView):
         context['blocks'] = page.blocks.all().order_by('order')
         context['stylesheets'] = page.stylesheets.all()
         context['images'] = page.images.all()
+        context['navbar_pages'] = Page.objects.filter(show_in_navbar=True, status='published')
         return context
 
 
@@ -39,6 +45,7 @@ def homepage_view(request):
         'blocks': homepage.blocks.all().order_by('order'),
         'stylesheets': homepage.stylesheets.all(),
         'images': homepage.images.all(),
+        'navbar_pages': Page.objects.filter(show_in_navbar=True, status='published')
     }
     if homepage.template:
         return render(request, homepage.template.template_file.name, context)

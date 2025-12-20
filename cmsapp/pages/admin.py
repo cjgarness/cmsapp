@@ -4,7 +4,7 @@ from .models import Page, PageBlock, PageImage
 
 @admin.register(Page)
 class PageAdmin(admin.ModelAdmin):
-    list_display = ('title', 'slug', 'status', 'is_homepage', 'created_at')
+    list_display = ('title', 'slug', 'status', 'is_homepage', 'show_in_navbar', 'created_at')
     list_filter = ('status', 'is_homepage', 'created_at')
     search_fields = ('title', 'slug', 'description')
     prepopulated_fields = {'slug': ('title',)}
@@ -17,7 +17,7 @@ class PageAdmin(admin.ModelAdmin):
             'fields': ('content', 'template', 'stylesheets')
         }),
         ('Publishing', {
-            'fields': ('status', 'is_homepage', 'show_in_menu', 'author', 'created_at', 'updated_at', 'published_at')
+            'fields': ('status', 'is_homepage', 'show_in_menu', 'show_in_navbar', 'author', 'created_at', 'updated_at', 'published_at')
         }),
     )
 

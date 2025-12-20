@@ -39,6 +39,7 @@ class Page(models.Model):
     author = models.CharField(max_length=100, default='Admin')
     is_homepage = models.BooleanField(default=False)
     show_in_menu = models.BooleanField(default=True)
+    show_in_navbar = models.BooleanField(default=False)
     
     class Meta:
         ordering = ['-created_at']
