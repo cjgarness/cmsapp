@@ -34,6 +34,7 @@ services:
     command: >
       bash -c "python manage.py migrate &&
                python manage.py collectstatic --noinput &&
+               python create_superuser.py &&
                gunicorn --bind 0.0.0.0:8000 --workers 4 --worker-class sync --timeout 120 cmsapp.wsgi:application"
     volumes:
       - static_volume:/app/staticfiles
@@ -49,6 +50,9 @@ services:
       - DATABASE_USER=${DATABASE_USER}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
       - DJANGO_SETTINGS_MODULE=cmsapp.settings
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
     depends_on:
       db:
         condition: service_healthy

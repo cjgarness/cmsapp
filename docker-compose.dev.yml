@@ -30,6 +30,7 @@ services:
     command: >
       bash -c "python manage.py migrate &&
                python manage.py collectstatic --noinput &&
+               python create_superuser.py &&
                python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
@@ -45,6 +46,9 @@ services:
       - DATABASE_USER=${DATABASE_USER:-cmsuser}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD:-cmspass}
       - DJANGO_SETTINGS_MODULE=cmsapp.settings
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME:-admin}
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-admin}
     depends_on:
       db:
         condition: service_healthy
