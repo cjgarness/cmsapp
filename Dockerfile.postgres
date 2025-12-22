@@ -1,0 +1,5 @@
+FROM postgres:16-alpine
+
+# Default production Postgres image; configuration provided via environment at runtime.
+
+EXPOSE 5432
