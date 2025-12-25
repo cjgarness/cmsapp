@@ -14,14 +14,14 @@ if [ ! -f ".env" ]; then
     echo ".env file created. Please update it with your settings."
 fi
 
-# Install Docker and Docker Compose if not present
+# Install Docker and Docker Compose plugin if not present
 if ! command -v docker &> /dev/null; then
     echo "Docker not found. Please install Docker Desktop."
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
-    echo "Docker Compose not found. Please install Docker Compose."
+if ! docker compose version &> /dev/null; then
+    echo "Docker Compose plugin not found. Please install the Docker Compose plugin for Docker."
     exit 1
 fi
 
@@ -32,11 +32,11 @@ docker pull postgres:16-alpine
 
 echo ""
 echo "Building Docker images for development..."
-docker-compose -f docker-compose.dev.yml build --no-cache
+docker compose -f docker-compose.dev.yml build --no-cache
 
 echo ""
 echo "Starting development services..."
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml up -d
 
 echo ""
 echo "Waiting for database to be ready..."
@@ -44,11 +44,11 @@ sleep 10
 
 echo ""
 echo "Running migrations..."
-docker-compose -f docker-compose.dev.yml exec -T web python manage.py migrate
+docker compose -f docker-compose.dev.yml exec -T web python manage.py migrate
 
 echo ""
 echo "Collecting static files..."
-docker-compose -f docker-compose.dev.yml exec -T web python manage.py collectstatic --noinput
+docker compose -f docker-compose.dev.yml exec -T web python manage.py collectstatic --noinput
 
 echo ""
 echo "======================================"
@@ -59,8 +59,8 @@ echo "Access the application at: http://localhost:8000"
 echo "Access admin panel at: http://localhost:8000/admin"
 echo ""
 echo "Useful commands:"
-echo "  - View logs: docker-compose -f docker-compose.dev.yml logs -f web"
-echo "  - Create superuser: docker-compose -f docker-compose.dev.yml exec web python manage.py createsuperuser"
-echo "  - Stop services: docker-compose -f docker-compose.dev.yml down"
-echo "  - Shell: docker-compose -f docker-compose.dev.yml exec web python manage.py shell"
+echo "  - View logs: docker compose -f docker-compose.dev.yml logs -f web"
+echo "  - Create superuser: docker compose -f docker-compose.dev.yml exec web python manage.py createsuperuser"
+echo "  - Stop services: docker compose -f docker-compose.dev.yml down"
+echo "  - Shell: docker compose -f docker-compose.dev.yml exec web python manage.py shell"
 echo ""

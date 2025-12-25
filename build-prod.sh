@@ -29,8 +29,8 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
-    echo "ERROR: Docker Compose not found. Please install Docker Compose."
+if ! docker compose version &> /dev/null; then
+    echo "ERROR: Docker Compose plugin not found. Please install the Docker Compose plugin for Docker." 
     exit 1
 fi
 
@@ -42,11 +42,11 @@ docker pull nginx:alpine
 
 echo ""
 echo "Building production Docker images..."
-docker-compose -f docker-compose.prod.yml build --no-cache
+docker compose -f docker-compose.prod.yml build --no-cache
 
 echo ""
 echo "Starting production services..."
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 
 echo ""
 echo "Waiting for database to be ready..."
@@ -54,11 +54,11 @@ sleep 15
 
 echo ""
 echo "Running database migrations..."
-docker-compose -f docker-compose.prod.yml exec -T web python manage.py migrate
+docker compose -f docker-compose.prod.yml exec -T web python manage.py migrate
 
 echo ""
 echo "Collecting static files..."
-docker-compose -f docker-compose.prod.yml exec -T web python manage.py collectstatic --noinput
+docker compose -f docker-compose.prod.yml exec -T web python manage.py collectstatic --noinput
 
 echo ""
 echo "======================================"
@@ -69,8 +69,8 @@ echo "Access the application at: http://localhost"
 echo "Access admin panel at: http://localhost/admin"
 echo ""
 echo "Useful commands:"
-echo "  - View logs: docker-compose -f docker-compose.prod.yml logs -f"
-echo "  - Create superuser: docker-compose -f docker-compose.prod.yml exec web python manage.py createsuperuser"
-echo "  - Stop services: docker-compose -f docker-compose.prod.yml down"
-echo "  - Restart services: docker-compose -f docker-compose.prod.yml restart"
+echo "  - View logs: docker compose -f docker-compose.prod.yml logs -f"
+echo "  - Create superuser: docker compose -f docker-compose.prod.yml exec web python manage.py createsuperuser"
+echo "  - Stop services: docker compose -f docker-compose.prod.yml down"
+echo "  - Restart services: docker compose -f docker-compose.prod.yml restart"
 echo ""
