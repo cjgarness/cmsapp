@@ -794,7 +794,7 @@ input[type="radio"] {
     }
     
     .card {
-        background: var(--gray-800);
+        background: var(--gray-200);
         border-color: var(--gray-700);
     }
     
