@@ -73,6 +73,8 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - static_volume:/app/staticfiles:ro
       - media_volume:/app/media:ro
+      - letsencrypt:/etc/letsencrypt:ro
+      - certbot_challenge:/var/www/certbot:ro
     ports:
       - "80:80"
       - "443:443"
@@ -87,10 +89,32 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Certbot for Let's Encrypt certificates (renewal loop)
+  certbot:
+    image: certbot/certbot
+    container_name: cmsapp_certbot_prod
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot_challenge:/var/www/certbot
+    entrypoint: /bin/sh
+    command: -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet --no-random-sleep-on-renew || true; sleep 12h; done"
+    depends_on:
+      - nginx
+    networks:
+      - cmsapp_network
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   postgres_data:
   static_volume:
   media_volume:
+  letsencrypt:
+  certbot_challenge:
 
 networks:
   cmsapp_network:
