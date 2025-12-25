@@ -59,6 +59,21 @@ docker compose -f docker-compose.prod.yml exec -T web python manage.py migrate
 echo ""
 echo "Collecting static files..."
 docker compose -f docker-compose.prod.yml exec -T web python manage.py collectstatic --noinput
+echo ""
+echo "Attempting to obtain TLS certificates with Certbot..."
+# Load CERTBOT_EMAIL from .env if present
+CERTBOT_EMAIL_VAR=$(grep -E '^CERTBOT_EMAIL=' .env | cut -d'=' -f2- || true)
+if [ -z "$CERTBOT_EMAIL_VAR" ]; then
+    echo "WARNING: CERTBOT_EMAIL not set in .env. Skipping certificate issuance."
+    echo "To enable TLS, add CERTBOT_EMAIL to .env and re-run:"
+    echo "  docker compose -f docker-compose.prod.yml exec nginx certbot certonly --webroot -w /var/www/certbot -d rvscope.com -d www.rvscope.com -d altuspath.com -d www.altuspath.com --agree-tos -m you@example.com --non-interactive --rsa-key-size 4096"
+else
+    docker compose -f docker-compose.prod.yml exec -T nginx certbot certonly --webroot -w /var/www/certbot \
+        -d rvscope.com -d www.rvscope.com -d altuspath.com -d www.altuspath.com \
+        --agree-tos -m "$CERTBOT_EMAIL_VAR" --non-interactive --rsa-key-size 4096 || true
+    echo "Reloading Nginx to apply certificates..."
+    docker compose -f docker-compose.prod.yml exec -T nginx nginx -s reload || true
+fi
 
 echo ""
 echo "======================================"
@@ -73,4 +88,9 @@ echo "  - View logs: docker compose -f docker-compose.prod.yml logs -f"
 echo "  - Create superuser: docker compose -f docker-compose.prod.yml exec web python manage.py createsuperuser"
 echo "  - Stop services: docker compose -f docker-compose.prod.yml down"
 echo "  - Restart services: docker compose -f docker-compose.prod.yml restart"
+echo ""
+echo "Certbot tips:"
+echo "  - Issue/renew: docker compose -f docker-compose.prod.yml exec nginx certbot renew && docker compose -f docker-compose.prod.yml exec nginx nginx -s reload"
+echo "  - First issue (if skipped): docker compose -f docker-compose.prod.yml exec nginx certbot certonly --webroot -w /var/www/certbot -d rvscope.com -d www.rvscope.com -d altuspath.com -d www.altuspath.com --agree-tos -m \$CERTBOT_EMAIL --non-interactive"
+echo ""
 echo ""
