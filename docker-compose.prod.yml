@@ -69,12 +69,16 @@ services:
       context: .
       dockerfile: Dockerfile.nginx
     container_name: cmsapp_nginx_prod
+    environment:
+      - CERTBOT_EMAIL=${CERTBOT_EMAIL}
+      - CERTBOT_DOMAINS=${CERTBOT_DOMAINS:-rvscope.com,www.rvscope.com,altuspath.com,www.altuspath.com}
+      - TEST_CERTBOT=${TEST_CERTBOT}
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - static_volume:/app/staticfiles:ro
       - media_volume:/app/media:ro
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - letsencrypt_data:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
     ports:
       - "80:80"
       - "443:443"
@@ -93,6 +97,8 @@ volumes:
   postgres_data:
   static_volume:
   media_volume:
+  letsencrypt_data:
+  certbot_webroot:
 
 networks:
   cmsapp_network:

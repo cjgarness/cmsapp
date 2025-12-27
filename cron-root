@@ -1,0 +1,6 @@
+# Busybox crond crontab for root
+# Ensure PATH includes binaries
+PATH=/usr/bin:/usr/sbin:/bin:/sbin
+
+# Renew certificates daily at 03:30 and reload nginx if anything changed
+30 3 * * * certbot renew --quiet && nginx -s reload
