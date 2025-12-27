@@ -35,6 +35,12 @@ if ! docker compose version &> /dev/null; then
 fi
 
 echo ""
+echo "Fixing permissions on certbot directory..."
+if [ -d "./certbot" ]; then
+    sudo chown -R $USER:$USER ./certbot 2>/dev/null || true
+fi
+
+echo ""
 echo "Pulling latest base images..."
 docker pull python:3.12-slim
 docker pull postgres:16-alpine
@@ -61,18 +67,52 @@ echo "Collecting static files..."
 docker compose -f docker-compose.prod.yml exec -T web python manage.py collectstatic --noinput
 echo ""
 echo "Attempting to obtain TLS certificates with Certbot..."
-# Load CERTBOT_EMAIL from .env if present
+# Load CERTBOT_EMAIL and TEST_CERTBOT from .env if present
 CERTBOT_EMAIL_VAR=$(grep -E '^CERTBOT_EMAIL=' .env | cut -d'=' -f2- || true)
+TEST_CERTBOT_VAR=$(grep -E '^TEST_CERTBOT=' .env | cut -d'=' -f2- || true)
+
 if [ -z "$CERTBOT_EMAIL_VAR" ]; then
     echo "WARNING: CERTBOT_EMAIL not set in .env. Skipping certificate issuance."
-    echo "To enable TLS, add CERTBOT_EMAIL to .env and re-run:"
-    echo "  docker compose -f docker-compose.prod.yml exec nginx certbot certonly --webroot -w /var/www/certbot -d rvscope.com -d www.rvscope.com -d altuspath.com -d www.altuspath.com --agree-tos -m you@example.com --non-interactive --rsa-key-size 4096"
+    echo "Using self-signed certificates instead."
 else
+    # Determine if we're in test mode
+    TEST_FLAG=""
+    if [ "$TEST_CERTBOT_VAR" == "true" ]; then
+        TEST_FLAG="--dry-run"
+        echo "TEST_CERTBOT=true: Running certbot in DRY-RUN mode (no actual certificates will be issued)"
+    fi
+    
+    # Attempt to obtain certificates
     docker compose -f docker-compose.prod.yml exec -T nginx certbot certonly --webroot -w /var/www/certbot \
         -d rvscope.com -d www.rvscope.com -d altuspath.com -d www.altuspath.com \
-        --agree-tos -m "$CERTBOT_EMAIL_VAR" --non-interactive --rsa-key-size 4096 || true
-    echo "Reloading Nginx to apply certificates..."
-    docker compose -f docker-compose.prod.yml exec -T nginx nginx -s reload || true
+        --agree-tos -m "$CERTBOT_EMAIL_VAR" --non-interactive --rsa-key-size 4096 $TEST_FLAG || true
+    
+    # Check if certificates were successfully obtained (check inside container)
+    if docker compose -f docker-compose.prod.yml exec -T nginx test -f /etc/letsencrypt/live/rvscope.com/fullchain.pem 2>/dev/null; then
+        echo "✓ Let's Encrypt certificates obtained successfully"
+        
+        # Verify it's not a self-signed certificate
+        CERT_ISSUER=$(docker compose -f docker-compose.prod.yml exec -T nginx openssl x509 -in /etc/letsencrypt/live/rvscope.com/fullchain.pem -noout -issuer 2>/dev/null || true)
+        
+        if echo "$CERT_ISSUER" | grep -q "Let's Encrypt"; then
+            echo "✓ Certificate verified: Issued by Let's Encrypt"
+            
+            # Remove the archive directory to clean up old self-signed certs
+            echo "Cleaning up old self-signed certificate files..."
+            docker compose -f docker-compose.prod.yml exec -T nginx sh -c 'rm -rf /etc/letsencrypt/archive/rvscope.com/cert*.pem && rm -rf /etc/letsencrypt/archive/rvscope.com/privkey*.pem 2>/dev/null || true' || true
+        fi
+        
+        if [ "$TEST_CERTBOT_VAR" != "true" ]; then
+            echo "Reloading Nginx to apply certificates..."
+            docker compose -f docker-compose.prod.yml exec -T nginx nginx -s reload || true
+        else
+            echo "Skipping Nginx reload (dry-run mode)"
+        fi
+    else
+        echo "⚠ Let's Encrypt certificates not available. Nginx will use self-signed certificates."
+        echo "Certbot details:"
+        docker compose -f docker-compose.prod.yml exec -T nginx certbot certificates || true
+    fi
 fi
 
 echo ""
