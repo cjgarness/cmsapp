@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ media_file.title }} - Media Library{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'media:library' %}">Media Library</a></li>
+            {% if media_file.folder %}
+            <li class="breadcrumb-item">{{ media_file.folder }}</li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ media_file.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2>{{ media_file.title }}</h2>
+                </div>
+                <div class="card-body">
+                    {% if media_file.media_type == 'image' %}
+                        <img src="{{ media_file.file.url }}" alt="{{ media_file.alt_text|default:media_file.title }}" class="img-fluid mb-3">
+                    {% elif media_file.media_type == 'video' %}
+                        <video controls class="w-100 mb-3">
+                            <source src="{{ media_file.file.url }}">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% elif media_file.media_type == 'audio' %}
+                        <audio controls class="w-100 mb-3">
+                            <source src="{{ media_file.file.url }}">
+                            Your browser does not support the audio element.
+                        </audio>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <a href="{{ media_file.file.url }}" target="_blank" class="btn btn-primary">Download File</a>
+                        </div>
+                    {% endif %}
+
+                    {% if media_file.description %}
+                    <p>{{ media_file.description }}</p>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">File URL:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ media_file.file.url }}" readonly id="fileUrl">
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyUrl()">Copy</button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'admin:media_mediafile_change' media_file.pk %}" class="btn btn-primary">Edit</a>
+                        <a href="{{ media_file.file.url }}" target="_blank" class="btn btn-secondary">Open Original</a>
+                        <a href="{% url 'media:library' %}" class="btn btn-outline-secondary">Back to Library</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Details Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Details</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Type:</dt>
+                        <dd class="col-sm-7">
+                            <span class="badge bg-secondary">{{ media_file.get_media_type_display }}</span>
+                        </dd>
+
+                        <dt class="col-sm-5">Size:</dt>
+                        <dd class="col-sm-7">{{ media_file.get_file_size_display }}</dd>
+
+                        <dt class="col-sm-5">Extension:</dt>
+                        <dd class="col-sm-7">.{{ media_file.file_extension }}</dd>
+
+                        {% if media_file.width and media_file.height %}
+                        <dt class="col-sm-5">Dimensions:</dt>
+                        <dd class="col-sm-7">{{ media_file.width }}×{{ media_file.height }}px</dd>
+                        {% endif %}
+
+                        {% if media_file.folder %}
+                        <dt class="col-sm-5">Folder:</dt>
+                        <dd class="col-sm-7">{{ media_file.folder }}</dd>
+                        {% endif %}
+
+                        <dt class="col-sm-5">Uploaded:</dt>
+                        <dd class="col-sm-7">{{ media_file.uploaded_at|date:"M d, Y" }}</dd>
+
+                        <dt class="col-sm-5">Uploaded by:</dt>
+                        <dd class="col-sm-7">{{ media_file.uploaded_by }}</dd>
+
+                        <dt class="col-sm-5">Usage:</dt>
+                        <dd class="col-sm-7">{{ media_file.usage_count }} time{{ media_file.usage_count|pluralize }}</dd>
+
+                        {% if media_file.tags %}
+                        <dt class="col-sm-5">Tags:</dt>
+                        <dd class="col-sm-7">
+                            {% for tag in media_file.tags.split:',' %}
+                                <span class="badge bg-info">{{ tag|trim }}</span>
+                            {% endfor %}
+                        </dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+
+            {% if related_files %}
+            <!-- Related Files Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>Related Files</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row row-cols-2 g-2">
+                        {% for file in related_files %}
+                        <div class="col">
+                            <a href="{% url 'media:detail' file.pk %}" class="text-decoration-none">
+                                <div class="card">
+                                    <div class="card-body p-2 text-center">
+                                        {% if file.media_type == 'image' %}
+                                            <img src="{{ file.file.url }}" alt="{{ file.title }}" class="img-fluid" style="max-height: 80px;">
+                                        {% else %}
+                                            <span style="font-size: 32px;">
+                                                {% if file.media_type == 'video' %}🎬{% elif file.media_type == 'audio' %}🎵{% elif file.media_type == 'document' %}📄{% else %}📁{% endif %}
+                                            </span>
+                                        {% endif %}
+                                        <p class="small mb-0 mt-1">{{ file.title|truncatechars:15 }}</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function copyUrl() {
+    const urlInput = document.getElementById('fileUrl');
+    urlInput.select();
+    navigator.clipboard.writeText(urlInput.value).then(function() {
+        alert('URL copied to clipboard!');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+{% endblock %}

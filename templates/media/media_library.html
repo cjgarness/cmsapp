@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Media Library{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Media Library</h1>
+            <p class="text-muted">Browse and manage your media files</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'admin:media_mediafile_add' %}" class="btn btn-primary">
+                Upload Media
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Folder</label>
+                    <select name="folder" class="form-select">
+                        <option value="">All Folders</option>
+                        {% for folder in folders %}
+                            <option value="{{ folder.id }}" {% if current_folder == folder.id|stringformat:"s" %}selected{% endif %}>
+                                {{ folder }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="image" {% if current_type == "image" %}selected{% endif %}>Images</option>
+                        <option value="video" {% if current_type == "video" %}selected{% endif %}>Videos</option>
+                        <option value="audio" {% if current_type == "audio" %}selected{% endif %}>Audio</option>
+                        <option value="document" {% if current_type == "document" %}selected{% endif %}>Documents</option>
+                        <option value="other" {% if current_type == "other" %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control" placeholder="Search by title or tags..." value="{{ search_query }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-secondary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Media Grid -->
+    {% if media_files %}
+    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for media in media_files %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px; overflow: hidden;">
+                    {% if media.media_type == 'image' %}
+                        <img src="{{ media.file.url }}" alt="{{ media.alt_text|default:media.title }}" class="img-fluid" style="max-height: 100%; object-fit: cover;">
+                    {% elif media.media_type == 'video' %}
+                        <span style="font-size: 64px;">🎬</span>
+                    {% elif media.media_type == 'audio' %}
+                        <span style="font-size: 64px;">🎵</span>
+                    {% elif media.media_type == 'document' %}
+                        <span style="font-size: 64px;">📄</span>
+                    {% else %}
+                        <span style="font-size: 64px;">📁</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h6 class="card-title">{{ media.title }}</h6>
+                    <p class="card-text small text-muted">
+                        <span class="badge bg-secondary">{{ media.get_media_type_display }}</span>
+                        {{ media.get_file_size_display }}
+                        {% if media.width and media.height %}
+                        <br>{{ media.width }}x{{ media.height }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="btn-group btn-group-sm w-100" role="group">
+                        <a href="{% url 'media:detail' media.pk %}" class="btn btn-outline-primary">View</a>
+                        <a href="{% url 'admin:media_mediafile_change' media.pk %}" class="btn btn-outline-secondary">Edit</a>
+                        <button class="btn btn-outline-success" onclick="copyToClipboard('{{ media.file.url }}')">Copy URL</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if current_folder %}&folder={{ current_folder }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_folder %}&folder={{ current_folder }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Previous</a>
+                </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_folder %}&folder={{ current_folder }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_folder %}&folder={{ current_folder }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">Last</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-info">
+        No media files found. <a href="{% url 'admin:media_mediafile_add' %}">Upload your first file</a>.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        alert('URL copied to clipboard!');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+{% endblock %}

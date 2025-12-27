@@ -10,6 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('cmsapp.pages.urls')),
     path('api/', include('cmsapp.core.urls')),
+    path('media/', include('cmsapp.media.urls')),
 ]
 
 if settings.DEBUG:
