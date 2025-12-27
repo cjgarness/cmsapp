@@ -118,7 +118,7 @@ main > * {
 h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
     line-height: var(--line-height-tight);
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-md);
     color: var(--gray-900);
 }
 
@@ -157,7 +157,7 @@ h6 {
 }
 
 p {
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
     color: var(--gray-700);
     line-height: var(--line-height-relaxed);
 }
@@ -262,7 +262,7 @@ hr {
 }
 
 .page-title {
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
 }
 
 .page-meta {
@@ -270,7 +270,7 @@ hr {
     color: var(--gray-600);
     display: flex;
     flex-wrap: wrap;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-sm);
 }
 
 .page-meta-item {
@@ -281,6 +281,8 @@ hr {
 
 .container {
     background: transparent !important;
+    padding-left: var(--spacing-sm) !important;
+    padding-right: var(--spacing-sm) !important;
 }
 
 .block {
