@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.utils import timezone
 from cmsapp.templates.models import PageTemplate, Stylesheet
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 class Page(models.Model):
@@ -16,7 +17,7 @@ class Page(models.Model):
     title = models.CharField(max_length=200, unique=True)
     slug = models.SlugField(unique=True, max_length=200)
     description = models.TextField(blank=True, null=True)
-    content = models.TextField(blank=True, null=True)
+    content = CKEditor5Field('Content', config_name='extends', blank=True, null=True)
     template = models.ForeignKey(
         PageTemplate, 
         on_delete=models.SET_NULL, 
@@ -77,7 +78,7 @@ class PageBlock(models.Model):
     page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name='blocks')
     title = models.CharField(max_length=100, blank=True)
     block_type = models.CharField(max_length=20, choices=BLOCK_TYPES, default='text')
-    content = models.TextField()
+    content = CKEditor5Field('Content', config_name='extends')
     order = models.PositiveIntegerField(default=0)
     
     created_at = models.DateTimeField(auto_now_add=True)

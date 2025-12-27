@@ -2,6 +2,14 @@ from django.contrib import admin
 from .models import Page, PageBlock, PageImage
 
 
+class PageBlockInline(admin.TabularInline):
+    """Inline admin for editing page blocks directly within the page admin."""
+    model = PageBlock
+    extra = 1
+    fields = ('title', 'block_type', 'content', 'order')
+    ordering = ('order',)
+
+
 @admin.register(Page)
 class PageAdmin(admin.ModelAdmin):
     list_display = ('title', 'slug', 'status', 'is_homepage', 'show_in_menu', 'show_in_navbar', 'show_in_page_list', 'created_at')
@@ -9,6 +17,7 @@ class PageAdmin(admin.ModelAdmin):
     search_fields = ('title', 'slug', 'description')
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('created_at', 'updated_at', 'published_at')
+    inlines = [PageBlockInline]
     fieldsets = (
         ('Basic Information', {
             'fields': ('title', 'slug', 'description', 'featured_image')
