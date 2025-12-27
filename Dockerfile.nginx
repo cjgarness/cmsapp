@@ -1,12 +1,8 @@
 FROM nginx:alpine
 
 RUN apk update && \
-	apk add --no-cache certbot openssl && \
+	apk add --no-cache certbot && \
 	mkdir -p /var/www/certbot
-
-# Run a pre-start script to ensure a temporary self-signed cert exists
-COPY nginx-selfsigned.sh /docker-entrypoint.d/10-selfsigned.sh
-RUN chmod +x /docker-entrypoint.d/10-selfsigned.sh
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
