@@ -5,9 +5,13 @@ from .models import Page, PageBlock, PageImage
 class PageBlockInline(admin.TabularInline):
     """Inline admin for editing page blocks directly within the page admin."""
     model = PageBlock
-    extra = 1
+    extra = 0
     fields = ('title', 'block_type', 'content', 'order')
     ordering = ('order',)
+    
+    def has_add_permission(self, request, obj=None):
+        """Allow adding new blocks."""
+        return True
 
 
 @admin.register(Page)
