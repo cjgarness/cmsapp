@@ -271,14 +271,16 @@ hr {
 
 .block {
     padding: var(--spacing-lg);
-    background: var(--gray-50);
+    background: rgba(229, 231, 235, 0.6);
     border-left: 4px solid var(--primary);
     border-radius: var(--radius-md);
     margin-bottom: var(--spacing-xl);
+    position: relative;
+    z-index: 1;
 }
 
 .block-text {
-    background: var(--gray-50);
+    background: rgba(229, 231, 235, 0.6);
 }
 
 .block-image {
