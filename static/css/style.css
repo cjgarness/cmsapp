@@ -72,30 +72,40 @@ body {
     font-size: 1rem;
     line-height: var(--line-height-normal);
     color: var(--gray-900);
-    background-color: var(--gray-50);
+    background-color: transparent;
 }
 
 main {
     min-height: calc(100vh - 200px);
-    background: white;
+    background: transparent;
     position: relative;
 }
 
 main::before {
     content: '';
     position: absolute;
-    top: 0;
+    top: 80px;
     left: 0;
     right: 0;
     bottom: 0;
     background-image: url('../img/RVScope Logo only.png');
     background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 60%;
+    background-position: center 180px; /* move further down the page */
+    background-size: 72%; /* slightly smaller */
     background-attachment: fixed;
-    opacity: 0.10;
+    opacity: 0.15;
     pointer-events: none;
     z-index: 0;
+}
+
+/* Reduce excess top spacing inside main while preserving navbar clearance */
+main.py-4 {
+    padding-top: 0.75rem; /* override Bootstrap py-4 top padding */
+}
+
+/* Prevent first element margin from creating large top gap */
+.container > *:first-child {
+    margin-top: 0;
 }
 
 main > * {
@@ -267,6 +277,10 @@ hr {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+}
+
+.container {
+    background: transparent !important;
 }
 
 .block {
