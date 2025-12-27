@@ -10,7 +10,7 @@ class PageListView(ListView):
     paginate_by = 10
     
     def get_queryset(self):
-        return Page.objects.filter(status='published', show_in_menu=True).order_by('-published_at')
+        return Page.objects.filter(status='published', show_in_menu=True, show_in_page_list=True).order_by('-published_at')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

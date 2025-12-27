@@ -40,6 +40,7 @@ class Page(models.Model):
     is_homepage = models.BooleanField(default=False)
     show_in_menu = models.BooleanField(default=True)
     show_in_navbar = models.BooleanField(default=False)
+    show_in_page_list = models.BooleanField(default=True)
     
     class Meta:
         ordering = ['-created_at']
