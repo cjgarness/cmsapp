@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'cmsapp.pages',
     'cmsapp.templates',
     'cmsapp.media',
+    'cmsapp.contact',
 ]
 
 MIDDLEWARE = [

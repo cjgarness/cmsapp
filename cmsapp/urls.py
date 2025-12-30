@@ -9,6 +9,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('ckeditor5/', include('django_ckeditor_5.urls')),
+    path('contact/', include('cmsapp.contact.urls')),
     path('', include('cmsapp.pages.urls')),
     path('api/', include('cmsapp.core.urls')),
     path('media/', include('cmsapp.media.urls')),
