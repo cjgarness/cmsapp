@@ -410,6 +410,20 @@ hr {
     border-radius: var(--radius-sm);
 }
 
+/* Style logout button to match nav links */
+.nav-item form button.nav-link {
+    padding: 0.5rem 1rem;
+    color: var(--gray-200) !important;
+    font-weight: 500;
+    font-size: 1rem;
+    font-family: var(--font-sans);
+}
+
+.nav-item form button.nav-link:hover {
+    color: var(--primary) !important;
+    text-decoration: none;
+}
+
 /* Footer */
 
 footer {
