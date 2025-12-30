@@ -314,7 +314,21 @@ hr {
 
 .block-content {
     margin-top: var(--spacing-md);
-    color: var(--gray-700);
+    color: var(--gray-900);
+}
+
+.block-content p,
+.block-content div {
+    color: var(--gray-900);
+}
+
+.content-main {
+    color: var(--gray-900);
+}
+
+.content-main p,
+.content-main div {
+    color: var(--gray-900);
 }
 
 /* Cards */
