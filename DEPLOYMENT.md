@@ -92,20 +92,96 @@ docker-compose -f docker-compose.prod.yml down
 ## 4) SSL and Nginx
 The default [nginx.conf](nginx.conf) listens on 80/443. For Let’s Encrypt, obtain certificates and mount them (e.g., via host volumes or image customization) then update nginx.conf accordingly.
 
-## 5) Backups (example)
+## 5) Database Backups
+
+The application includes dedicated backup scripts for both development and production environments.
+
+### Production Backup Script
+
+The production backup script ([backup-db-prod.sh](backup-db-prod.sh)) provides automated retention policies and organized storage:
 
 ```bash
-cat > /opt/cmsapp/backup.sh << 'EOF'
-#!/bin/bash
-BACKUP_DIR="/opt/cmsapp/backups"
-mkdir -p "$BACKUP_DIR"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-docker-compose -f /opt/cmsapp/docker-compose.prod.yml exec -T db pg_dump -U cmsuser cmsdb | gzip > "$BACKUP_DIR/cmsdb_$TIMESTAMP.sql.gz"
-find "$BACKUP_DIR" -name "*.sql.gz" -mtime +7 -delete
-EOF
-chmod +x /opt/cmsapp/backup.sh
-(crontab -l 2>/dev/null; echo "0 2 * * * /opt/cmsapp/backup.sh") | crontab -
+# Standard backup
+./backup-db-prod.sh
+
+# Named backup (for special occasions like pre-migration)
+./backup-db-prod.sh pre-migration
 ```
+
+**Features:**
+- **Automatic retention policy**: Daily (7 days), Weekly (4 weeks), Monthly (6 months)
+- **Organized storage**: Separate directories for daily/weekly/monthly backups
+- **Compression**: Automatic gzip compression
+- **Verification**: Checks container status and backup integrity
+- **Tracking**: Shows backup counts and total storage used
+
+**Backup Structure:**
+```
+backups/prod/
+├── daily/         # Last 7 days
+├── weekly/        # Last 4 weeks (Sundays)
+├── monthly/       # Last 6 months (1st of month)
+└── prod_cmsdb_*.sql.gz  # Individual timestamped backups
+```
+
+### Automated Daily Backups
+
+Set up a cron job to run backups automatically:
+
+```bash
+# Edit crontab
+crontab -e
+
+# Add this line to run daily at 2 AM
+0 2 * * * cd /path/to/cmsapp && ./backup-db-prod.sh >> /var/log/cmsapp-backup.log 2>&1
+```
+
+### Development Backup Script
+
+For development environments, use the general backup script:
+
+```bash
+# Development backup
+./backup-db.sh dev
+
+# Named development backup
+./backup-db.sh dev before-major-changes
+```
+
+### Manual Backup
+
+For one-off backups without using the scripts:
+
+```bash
+# Create backup directory
+mkdir -p backups/manual
+
+# Create backup
+docker exec -t cmsapp_db_prod pg_dump -U cmsuser -d cmsdb --clean --if-exists | gzip > backups/manual/manual_$(date +%Y%m%d_%H%M%S).sql.gz
+```
+
+### Restore from Backup
+
+To restore a database from a backup:
+
+```bash
+# Stop the web service
+docker-compose -f docker-compose.prod.yml stop web
+
+# Restore the backup
+gunzip -c backups/prod/prod_cmsdb_TIMESTAMP.sql.gz | docker exec -i cmsapp_db_prod psql -U cmsuser -d cmsdb
+
+# Restart the web service
+docker-compose -f docker-compose.prod.yml start web
+```
+
+### Backup Best Practices
+
+1. **Test restores regularly** - Verify backups can be restored successfully
+2. **Store off-site** - Copy backups to remote storage (S3, rsync to remote server, etc.)
+3. **Monitor backup size** - Check disk space usage periodically
+4. **Verify integrity** - Ensure backup files are not corrupted
+5. **Document procedures** - Keep restore instructions accessible
 
 ## 6) Troubleshooting
 - Check status: `docker ps -a`
