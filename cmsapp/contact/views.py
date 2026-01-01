@@ -11,6 +11,8 @@ from .forms import ContactForm
 def contact(request):
     """Contact form view."""
     config = ContactConfiguration.get_config()
+    print('Configuration:')
+    print(config)
     
     # Check if contact form is enabled
     if not config.enable_contact_form:
@@ -29,6 +31,10 @@ def contact(request):
             
             # Send notification email to admin
             send_admin_notification(inquiry, config)
+            
+            # Send SMS notification if enabled
+            if config.enable_sms_notifications:
+                send_sms_notification(inquiry, config)
             
             # Show success message
             messages.success(
@@ -55,6 +61,7 @@ def thank_you(request):
 
 
 def send_admin_notification(inquiry, config):
+    print('Sending admin notification...')
     """Send notification email to admin about new inquiry."""
     try:
         subject = f"New {inquiry.get_inquiry_type_display()}: {inquiry.subject}"
@@ -89,15 +96,46 @@ You can respond to this inquiry in the Django admin panel.
 
 def send_sms_notification(inquiry, config):
     """Send SMS notification to admin about new inquiry using Twilio."""
-    if not config.enable_sms_notifications or not config.sms_api_key:
+    print('Sending SMS notification...')
+    if not config.enable_sms_notifications or not config.sms_phone_number:
+        print('SMS notifications not enabled or phone number not configured')
+        return False
+    
+    # Check if Twilio credentials are configured
+    if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_AUTH_TOKEN or not settings.TWILIO_PHONE_NUMBER:
+        print('Twilio credentials not configured in settings')
         return False
     
     try:
-        # Note: Twilio integration would require additional setup
-        # This is a placeholder for future implementation
-        pass
+        from twilio.rest import Client
+        
+        # Initialize Twilio client
+        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+        
+        # Compose SMS message
+        sms_body = (
+            f"New {inquiry.get_inquiry_type_display()} from {inquiry.name}\n"
+            f"Subject: {inquiry.subject}\n"
+            f"Email: {inquiry.email}\n"
+            f"Check admin panel for details."
+        )
+        
+        # Send SMS
+        message = client.messages.create(
+            body=sms_body,
+            from_=settings.TWILIO_PHONE_NUMBER,
+            to=config.sms_phone_number
+        )
+        
+        print(f"SMS sent successfully. SID: {message.sid}")
+        return True
+        
+    except ImportError:
+        print("Twilio package not installed. Run: pip install twilio")
+        return False
     except Exception as e:
         print(f"Error sending SMS notification: {e}")
+        return False
         return False
     
     return True

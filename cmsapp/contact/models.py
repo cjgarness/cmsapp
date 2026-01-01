@@ -157,7 +157,21 @@ class ContactConfiguration(models.Model):
         verbose_name_plural = 'Contact Configuration'
     
     def __str__(self):
-        return f"Contact Configuration (Updated: {self.updated_at.strftime('%B %d, %Y')})"
+        sms_status = "Enabled" if self.enable_sms_notifications else "Disabled"
+        confirmation_status = "Enabled" if self.send_confirmation_email else "Disabled"
+        form_status = "Enabled" if self.enable_contact_form else "Disabled"
+        auto_response_status = "Enabled" if self.auto_response_enabled else "Disabled"
+        
+        return (
+            f"Contact Configuration | "
+            f"Admin: {self.admin_name} ({self.admin_email}) | "
+            f"Form: {form_status} | "
+            f"Confirmations: {confirmation_status} | "
+            f"Auto-response: {auto_response_status} | "
+            f"SMS: {sms_status}" +
+            (f" ({self.sms_phone_number})" if self.enable_sms_notifications and self.sms_phone_number else "") +
+            f" | Updated: {self.updated_at.strftime('%B %d, %Y')}"
+        )
     
     @classmethod
     def get_config(cls):
