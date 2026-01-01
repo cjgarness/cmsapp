@@ -2,14 +2,35 @@ from django.db import models
 from django.utils.text import slugify
 from django.core.validators import FileExtensionValidator
 from django.utils import timezone
+from cmsapp.domains.models import Domain
 import os
+
+
+def get_default_domain():
+    """Get or create the default domain."""
+    domain, _ = Domain.objects.get_or_create(
+        name='altuspath.com',
+        defaults={
+            'title': 'AltusPath',
+            'description': 'Default domain',
+            'is_active': True,
+        }
+    )
+    return domain.id
 
 
 class MediaFolder(models.Model):
     """Organize media files into folders."""
     
+    domain = models.ForeignKey(
+        Domain,
+        on_delete=models.CASCADE,
+        related_name='media_folders',
+        default=get_default_domain,
+        help_text="Domain this folder belongs to"
+    )
     name = models.CharField(max_length=255)
-    slug = models.SlugField(unique=True, max_length=255)
+    slug = models.SlugField(max_length=255)
     parent = models.ForeignKey(
         'self', 
         on_delete=models.CASCADE, 
@@ -24,6 +45,10 @@ class MediaFolder(models.Model):
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'Media Folders'
+        unique_together = ('domain', 'slug', 'parent')
+        indexes = [
+            models.Index(fields=['domain', 'parent']),
+        ]
     
     def __str__(self):
         if self.parent:
@@ -53,6 +78,13 @@ class MediaFile(models.Model):
         ('other', 'Other'),
     ]
     
+    domain = models.ForeignKey(
+        Domain,
+        on_delete=models.CASCADE,
+        related_name='media_files',
+        default=get_default_domain,
+        help_text="Domain this media belongs to"
+    )
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, blank=True)
     description = models.TextField(blank=True)
