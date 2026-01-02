@@ -36,7 +36,7 @@ class Page(models.Model):
         help_text="Domain/website this page belongs to"
     )
     title = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, max_length=200)
+    slug = models.SlugField(max_length=200)
     description = models.TextField(blank=True, null=True)
     content = CKEditor5Field('Content', config_name='extends', blank=True, null=True)
     template = models.ForeignKey(

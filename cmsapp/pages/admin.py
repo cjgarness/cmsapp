@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Page, PageBlock, PageImage
+from cmsapp.domains.utils import filter_queryset_by_domain, get_user_domains
 
 
 class PageBlockInline(admin.TabularInline):
@@ -16,15 +17,15 @@ class PageBlockInline(admin.TabularInline):
 
 @admin.register(Page)
 class PageAdmin(admin.ModelAdmin):
-    list_display = ('title', 'slug', 'status', 'is_homepage', 'show_in_menu', 'show_in_navbar', 'show_in_page_list', 'created_at')
-    list_filter = ('status', 'is_homepage', 'show_in_menu', 'show_in_navbar', 'show_in_page_list', 'created_at')
+    list_display = ('title', 'slug', 'domain', 'status', 'is_homepage', 'show_in_menu', 'created_at')
+    list_filter = ('domain', 'status', 'is_homepage', 'show_in_menu', 'show_in_navbar', 'show_in_page_list', 'created_at')
     search_fields = ('title', 'slug', 'description')
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('created_at', 'updated_at', 'published_at')
     inlines = [PageBlockInline]
     fieldsets = (
         ('Basic Information', {
-            'fields': ('title', 'slug', 'description', 'featured_image')
+            'fields': ('domain', 'title', 'slug', 'description', 'featured_image')
         }),
         ('Content', {
             'fields': ('content', 'template', 'stylesheets')
@@ -33,6 +34,28 @@ class PageAdmin(admin.ModelAdmin):
             'fields': ('status', 'is_homepage', 'show_in_menu', 'show_in_navbar', 'show_in_page_list', 'author', 'created_at', 'updated_at', 'published_at')
         }),
     )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return filter_queryset_by_domain(qs, request.user)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'domain' and not request.user.is_superuser:
+            kwargs["queryset"] = get_user_domains(request.user)
+        if db_field.name == 'template':
+            kwargs["queryset"] = filter_queryset_by_domain(
+                db_field.remote_field.model.objects.all(),
+                request.user
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == 'stylesheets':
+            kwargs["queryset"] = filter_queryset_by_domain(
+                db_field.remote_field.model.objects.all(),
+                request.user
+            )
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
 @admin.register(PageBlock)
