@@ -23,7 +23,7 @@
     {% endif %}
     
     <div class="row">
-        <div class="col-lg-8">
+        <div class="col-12">
             <!-- Page Content -->
             <div class="page-content mb-5">
                 {{ page.content|safe }}
@@ -59,46 +59,6 @@
                     </div>
                 </div>
             {% endif %}
-        </div>
-        
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <div class="sidebar">
-                <!-- Related Pages -->
-                {% if navbar_pages %}
-                    <div class="sidebar-widget mb-4 p-4 bg-light rounded">
-                        <h5 class="mb-3">Quick Links</h5>
-                        <ul class="list-unstyled">
-                            {% for nav_page in navbar_pages %}
-                                <li class="mb-2">
-                                    <a href="{{ nav_page.get_absolute_url }}" class="text-decoration-none">
-                                        {{ nav_page.title }}
-                                    </a>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-                
-                <!-- Metadata -->
-                <div class="sidebar-widget p-4 bg-light rounded">
-                    <h5 class="mb-3">Information</h5>
-                    <dl class="row small">
-                        <dt class="col-6">Status:</dt>
-                        <dd class="col-6">
-                            <span class="badge bg-success">Published</span>
-                        </dd>
-                        {% if page.author %}
-                            <dt class="col-6">Author:</dt>
-                            <dd class="col-6">{{ page.author }}</dd>
-                        {% endif %}
-                        {% if page.published_at %}
-                            <dt class="col-6">Published:</dt>
-                            <dd class="col-6">{{ page.published_at|date:"M d, Y" }}</dd>
-                        {% endif %}
-                    </dl>
-                </div>
-            </div>
         </div>
     </div>
 </div>
