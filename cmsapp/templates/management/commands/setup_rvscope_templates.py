@@ -1,25 +1,23 @@
 """
-Management command to set up modern templates for a specific domain.
-Usage: python manage.py setup_modern_templates --domain altuspath.com
+Management command to set up RVScope templates for a specific domain.
+Usage: python manage.py setup_rvscope_templates --domain rvscope.com
 """
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from django.core.files.base import ContentFile
 from cmsapp.templates.models import PageTemplate
 from cmsapp.domains.models import Domain
-from django.core.files.storage import default_storage
 import os
 
 
 class Command(BaseCommand):
-    help = 'Set up modern responsive templates for a domain'
+    help = 'Set up RVScope Bootstrap templates for a domain'
 
     def add_arguments(self, parser):
         parser.add_argument(
             '--domain',
             type=str,
-            default='altuspath.com',
-            help='Domain name (default: altuspath.com)',
+            default='rvscope.com',
+            help='Domain name (default: rvscope.com)',
         )
 
     @transaction.atomic
@@ -31,39 +29,39 @@ class Command(BaseCommand):
         except Domain.DoesNotExist:
             raise CommandError(f'Domain "{domain_name}" does not exist')
 
-        self.stdout.write(f'Setting up modern templates for domain: {domain.name}')
+        self.stdout.write(f'Setting up RVScope templates for domain: {domain.name}')
 
         templates_to_create = [
             {
-                'name': 'Modern Page Detail',
-                'description': 'Template for individual page display with hero section',
+                'name': 'RVScope Page Detail',
+                'description': 'Bootstrap template for individual page display with sidebar',
                 'layout_type': 'hero',
-                'template_path': 'modern/page_detail.html',
+                'template_path': 'rvscope/page_detail.html',
             },
             {
-                'name': 'Modern Page List',
-                'description': 'Template for displaying pages in a grid layout',
+                'name': 'RVScope Page List',
+                'description': 'Bootstrap template for displaying pages in a card grid',
                 'layout_type': 'masonry',
-                'template_path': 'modern/page_list.html',
+                'template_path': 'rvscope/page_list.html',
             },
             {
-                'name': 'Modern Homepage',
-                'description': 'Template for homepage with featured sections',
+                'name': 'RVScope Homepage',
+                'description': 'Bootstrap template for homepage with hero section and featured content',
                 'layout_type': 'hero',
-                'template_path': 'modern/homepage.html',
+                'template_path': 'rvscope/homepage.html',
             },
             {
-                'name': 'Modern Contact',
-                'description': 'Template for contact form with responsive layout',
+                'name': 'RVScope Contact',
+                'description': 'Bootstrap template for contact form with multi-column layout',
                 'layout_type': 'single-column',
-                'template_path': 'modern/contact.html',
+                'template_path': 'rvscope/contact.html',
             },
         ]
 
         created_count = 0
         for template_data in templates_to_create:
             # Read the template file - navigate from cmsapp/templates/management/commands to project root
-            # __file__ = .../cmsapp/templates/management/commands/setup_modern_templates.py
+            # __file__ = .../cmsapp/templates/management/commands/setup_rvscope_templates.py
             # We need to go up 5 levels to get to project root, then into templates/
             project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
             template_file_path = os.path.join(
@@ -78,7 +76,7 @@ class Command(BaseCommand):
                 )
                 continue
             
-            # Read template content
+            # Read template content for verification
             with open(template_file_path, 'r') as f:
                 template_content = f.read()
             
@@ -109,4 +107,11 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(f'\nCompleted! Created {created_count} templates for {domain.name}')
+        )
+        self.stdout.write(
+            self.style.SUCCESS(
+                '\nRVScope templates are now available in the database.\n'
+                'Template files are located in: templates/rvscope/\n'
+                'These templates use Bootstrap 5 with professional dark headers and card layouts.'
+            )
         )
