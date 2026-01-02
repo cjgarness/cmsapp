@@ -1,12 +1,11 @@
 from django.shortcuts import redirect
 from functools import wraps
-from .models import DomainPermission
+from .models import DomainPermission, Domain
 
 
 def get_user_domains(user):
     """Get all domains a user has access to."""
     if user.is_superuser:
-        from .models import Domain
         return Domain.objects.filter(is_active=True)
     
     return Domain.objects.filter(
@@ -48,7 +47,6 @@ def require_domain_permission(permission_type='edit'):
             if not domain_id:
                 return redirect('admin:index')
             
-            from .models import Domain
             try:
                 domain = Domain.objects.get(id=domain_id, is_active=True)
             except Domain.DoesNotExist:
