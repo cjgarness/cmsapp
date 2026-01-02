@@ -1,0 +1,85 @@
+{% extends 'rvscope/base.html' %}
+{% load static %}
+
+{% block title %}Pages - RVScope{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-5">
+        <div class="col-12">
+            <h1 class="mb-4">Pages</h1>
+            <p class="lead text-muted">Browse our collection of resources and information</p>
+        </div>
+    </div>
+    
+    {% if pages %}
+        <div class="row">
+            {% for page in pages %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if page.featured_image %}
+                            <img src="{{ page.featured_image.url }}" class="card-img-top" alt="{{ page.title }}" loading="lazy">
+                        {% else %}
+                            <div class="card-img-top bg-secondary" style="height: 200px; display: flex; align-items: center; justify-content: center;">
+                                <span class="text-white">No image</span>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ page.title }}</h5>
+                            <p class="card-text text-muted">{{ page.excerpt|truncatewords:20 }}</p>
+                        </div>
+                        <div class="card-footer bg-white border-top">
+                            <a href="{{ page.get_absolute_url }}" class="btn btn-sm btn-primary">Read More</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <div class="row mt-5">
+                <div class="col-12">
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            No pages available at this time.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

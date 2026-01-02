@@ -9,7 +9,19 @@ class PageListView(ListView):
     paginate_by = 10
     
     def get_template_names(self):
-        """Return domain-specific template if available, otherwise default."""
+        """Return domain-specific template based on current domain."""
+        domain = getattr(self.request, 'domain', None)
+        
+        # Map domains to their template directories
+        domain_templates = {
+            'altuspath.com': ['modern/page_list.html', 'pages/page_list.html'],
+            'rvscope.com': ['rvscope/page_list.html', 'pages/page_list.html'],
+        }
+        
+        if domain and domain.name in domain_templates:
+            return domain_templates[domain.name]
+        
+        # Default fallback
         return ['modern/page_list.html', 'pages/page_list.html']
     
     def get_queryset(self):
@@ -35,11 +47,24 @@ class PageDetailView(DetailView):
     slug_field = 'slug'
     
     def get_template_names(self):
-        """Return domain-specific template if available, otherwise default."""
+        """Return domain-specific template based on current domain."""
         page = self.get_object()
-        # If page has a template assigned, use it
+        domain = getattr(self.request, 'domain', None)
+        
+        # If page has a template assigned, use it first
         if page.template and page.template.template_name:
-            return [page.template.template_name, 'modern/page_detail.html', 'pages/page_detail.html']
+            return [page.template.template_name]
+        
+        # Map domains to their template directories
+        domain_templates = {
+            'altuspath.com': ['modern/page_detail.html', 'pages/page_detail.html'],
+            'rvscope.com': ['rvscope/page_detail.html', 'pages/page_detail.html'],
+        }
+        
+        if domain and domain.name in domain_templates:
+            return domain_templates[domain.name]
+        
+        # Default fallback
         return ['modern/page_detail.html', 'pages/page_detail.html']
     
     def get_queryset(self):
@@ -88,11 +113,13 @@ def homepage_view(request):
         'navbar_pages': navbar_qs
     }
     
-    # Use template_name if available, otherwise fall back to template_file or default
-    if homepage.template:
-        if homepage.template.template_name:
-            return render(request, homepage.template.template_name, context)
-        elif homepage.template.template_file:
-            return render(request, homepage.template.template_file.name, context)
+    # Use template_name if available
+    if homepage.template and homepage.template.template_name:
+        return render(request, homepage.template.template_name, context)
     
-    return render(request, 'pages/page_detail.html', context)
+    # Fall back to domain-specific template
+    if domain and domain.name == 'rvscope.com':
+        return render(request, 'rvscope/homepage.html', context)
+    
+    # Default to modern template
+    return render(request, 'modern/homepage.html', context)

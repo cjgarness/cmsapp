@@ -1,0 +1,105 @@
+{% extends 'rvscope/base.html' %}
+{% load static %}
+
+{% block title %}{{ page.title }} - RVScope{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-5">
+        <div class="col-12">
+            <h1 class="mb-3">{{ page.title }}</h1>
+            {% if page.published_at %}
+                <p class="text-muted">Published on {{ page.published_at|date:"F j, Y" }}</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if page.featured_image %}
+        <div class="row mb-5">
+            <div class="col-12">
+                <img src="{{ page.featured_image.url }}" alt="{{ page.title }}" class="img-fluid rounded shadow-sm" loading="lazy">
+            </div>
+        </div>
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Page Content -->
+            <div class="page-content mb-5">
+                {{ page.content|safe }}
+            </div>
+            
+            <!-- Page Blocks -->
+            {% if blocks %}
+                <div class="page-blocks mb-5">
+                    {% for block in blocks %}
+                        <div class="page-block mb-4 p-4 bg-light rounded">
+                            <h3 class="mb-3">{{ block.title }}</h3>
+                            <div class="block-content">
+                                {{ block.content|safe }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <!-- Image Gallery -->
+            {% if images %}
+                <div class="image-gallery mb-5">
+                    <h3 class="mb-4">Gallery</h3>
+                    <div class="row">
+                        {% for image in images %}
+                            <div class="col-sm-6 col-lg-4 mb-3">
+                                <img src="{{ image.image.url }}" alt="{{ image.title }}" class="img-fluid rounded shadow-sm" loading="lazy">
+                                {% if image.title %}
+                                    <p class="mt-2 text-muted small">{{ image.title }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="sidebar">
+                <!-- Related Pages -->
+                {% if navbar_pages %}
+                    <div class="sidebar-widget mb-4 p-4 bg-light rounded">
+                        <h5 class="mb-3">Quick Links</h5>
+                        <ul class="list-unstyled">
+                            {% for nav_page in navbar_pages %}
+                                <li class="mb-2">
+                                    <a href="{{ nav_page.get_absolute_url }}" class="text-decoration-none">
+                                        {{ nav_page.title }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                <!-- Metadata -->
+                <div class="sidebar-widget p-4 bg-light rounded">
+                    <h5 class="mb-3">Information</h5>
+                    <dl class="row small">
+                        <dt class="col-6">Status:</dt>
+                        <dd class="col-6">
+                            <span class="badge bg-success">Published</span>
+                        </dd>
+                        {% if page.author %}
+                            <dt class="col-6">Author:</dt>
+                            <dd class="col-6">{{ page.author.get_full_name|default:page.author.username }}</dd>
+                        {% endif %}
+                        {% if page.published_at %}
+                            <dt class="col-6">Published:</dt>
+                            <dd class="col-6">{{ page.published_at|date:"M d, Y" }}</dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

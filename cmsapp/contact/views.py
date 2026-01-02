@@ -9,7 +9,7 @@ from .forms import ContactForm
 
 @require_http_methods(["GET", "POST"])
 def contact(request):
-    """Contact form view."""
+    """Contact form view with domain-specific templates."""
     config = ContactConfiguration.get_config()
     print('Configuration:')
     print(config)
@@ -50,12 +50,23 @@ def contact(request):
         'form': form,
         'page_title': 'Contact Us',
     }
-    return render(request, 'contact/contact.html', context)
+    
+    # Use domain-specific template
+    domain = getattr(request, 'domain', None)
+    if domain and domain.name == 'rvscope.com':
+        return render(request, 'rvscope/contact.html', context)
+    
+    return render(request, 'modern/contact.html', context)
 
 
 def thank_you(request):
     """Thank you page after successful contact form submission."""
-    return render(request, 'contact/thank_you.html', {
+    domain = getattr(request, 'domain', None)
+    if domain and domain.name == 'rvscope.com':
+        return render(request, 'rvscope/thank_you.html', {
+            'page_title': 'Thank You',
+        })
+    return render(request, 'modern/thank_you.html', {
         'page_title': 'Thank You',
     })
 
