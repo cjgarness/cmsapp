@@ -44,17 +44,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
-    // Add active class to current nav link
-    const currentLocation = location.pathname;
-    const menuItems = document.querySelectorAll('.nav-link');
-    
-    menuItems.forEach(item => {
-        if (item.getAttribute('href') === currentLocation) {
-            item.style.color = 'var(--color-ocean)';
-            item.style.borderBottomColor = 'var(--color-ocean)';
-        }
-    });
 });
 
 // Intersection Observer for fade-in animations

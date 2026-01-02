@@ -34,14 +34,14 @@
                 </button>
                 
                 <ul class="nav-menu" id="navMenu">
-                    <li><a href="{% url 'pages:homepage' %}" class="nav-link">Home</a></li>
-                    <li><a href="{% url 'pages:page_list' %}" class="nav-link">Pages</a></li>
+                    <li><a href="{% url 'pages:homepage' %}" class="nav-link {% if request.path == '/' %}active{% endif %}">Home</a></li>
+                    <li><a href="{% url 'pages:page_list' %}" class="nav-link {% if '/pages/' in request.path %}active{% endif %}">Pages</a></li>
                     {% if navbar_pages %}
                         {% for page in navbar_pages %}
-                            <li><a href="{{ page.get_absolute_url }}" class="nav-link">{{ page.title }}</a></li>
+                            <li><a href="{{ page.get_absolute_url }}" class="nav-link {% if page.get_absolute_url == request.path %}active{% endif %}">{{ page.title }}</a></li>
                         {% endfor %}
                     {% endif %}
-                    <li><a href="{% url 'contact:contact' %}" class="nav-link nav-link-primary">Contact</a></li>
+                    <li><a href="{% url 'contact:contact' %}" class="nav-link nav-link-primary {% if '/contact/' in request.path %}active{% endif %}">Contact</a></li>
                 </ul>
             </div>
         </div>
@@ -78,7 +78,7 @@
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2025 AltusPath. All rights reserved.</p>
+                <p>&copy; {{ current_year }} AltusPath. All rights reserved.</p>
             </div>
         </div>
     </footer>
