@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     'django_extensions',
+    'cmsapp.domains',
     'cmsapp.core',
     'cmsapp.pages',
     'cmsapp.templates',

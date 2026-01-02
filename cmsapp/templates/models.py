@@ -1,4 +1,18 @@
 from django.db import models
+from cmsapp.domains.models import Domain
+
+
+def get_default_domain():
+    """Get or create the default domain."""
+    domain, _ = Domain.objects.get_or_create(
+        name='altuspath.com',
+        defaults={
+            'title': 'AltusPath',
+            'description': 'Default domain',
+            'is_active': True,
+        }
+    )
+    return domain.id
 
 
 class PageTemplate(models.Model):
@@ -13,7 +27,14 @@ class PageTemplate(models.Model):
         ('custom', 'Custom Layout'),
     ]
     
-    name = models.CharField(max_length=100, unique=True)
+    domain = models.ForeignKey(
+        Domain,
+        on_delete=models.CASCADE,
+        related_name='page_templates',
+        default=get_default_domain,
+        help_text="Domain this template belongs to"
+    )
+    name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     layout_type = models.CharField(max_length=20, choices=LAYOUT_CHOICES, default='single-column')
     template_file = models.FileField(
@@ -29,6 +50,10 @@ class PageTemplate(models.Model):
     class Meta:
         verbose_name_plural = 'Page Templates'
         ordering = ['name']
+        unique_together = ('domain', 'name')
+        indexes = [
+            models.Index(fields=['domain', 'is_active']),
+        ]
     
     def __str__(self):
         return self.name
@@ -37,7 +62,14 @@ class PageTemplate(models.Model):
 class Stylesheet(models.Model):
     """CSS stylesheets for customization."""
     
-    name = models.CharField(max_length=100, unique=True)
+    domain = models.ForeignKey(
+        Domain,
+        on_delete=models.CASCADE,
+        related_name='stylesheets',
+        default=get_default_domain,
+        help_text="Domain this stylesheet belongs to"
+    )
+    name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     css_file = models.FileField(
         upload_to='stylesheets/',

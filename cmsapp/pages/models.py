@@ -3,6 +3,20 @@ from django.utils.text import slugify
 from django.utils import timezone
 from cmsapp.templates.models import PageTemplate, Stylesheet
 from django_ckeditor_5.fields import CKEditor5Field
+from cmsapp.domains.models import Domain
+
+
+def get_default_domain():
+    """Get or create the default domain."""
+    domain, _ = Domain.objects.get_or_create(
+        name='altuspath.com',
+        defaults={
+            'title': 'AltusPath',
+            'description': 'Default domain',
+            'is_active': True,
+        }
+    )
+    return domain.id
 
 
 class Page(models.Model):
@@ -14,7 +28,14 @@ class Page(models.Model):
         ('archived', 'Archived'),
     ]
     
-    title = models.CharField(max_length=200, unique=True)
+    domain = models.ForeignKey(
+        Domain,
+        on_delete=models.CASCADE,
+        related_name='pages',
+        default=get_default_domain,
+        help_text="Domain/website this page belongs to"
+    )
+    title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, max_length=200)
     description = models.TextField(blank=True, null=True)
     content = CKEditor5Field('Content', config_name='extends', blank=True, null=True)
@@ -46,6 +67,11 @@ class Page(models.Model):
     class Meta:
         ordering = ['-created_at']
         verbose_name_plural = 'Pages'
+        unique_together = ('domain', 'slug')
+        indexes = [
+            models.Index(fields=['domain', '-created_at']),
+            models.Index(fields=['domain', 'status']),
+        ]
     
     def __str__(self):
         return self.title
