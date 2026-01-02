@@ -66,6 +66,47 @@ class PageBlockAdmin(admin.ModelAdmin):
     list_display = ('title', 'page', 'block_type', 'order')
     list_filter = ('block_type', 'page')
     search_fields = ('title', 'page__title')
+    readonly_fields = ('created_at', 'updated_at')
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if not request.user.is_staff:
+            return qs.none()
+        # Filter blocks to only those on pages the user has access to
+        return qs.filter(page__domain__in=filter_queryset_by_domain(
+            Page.objects.all(), request.user
+        ).values_list('domain', flat=True))
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'page':
+            # Only show pages from domains the user has access to
+            kwargs["queryset"] = filter_queryset_by_domain(
+                Page.objects.all(),
+                request.user
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
+    def has_add_permission(self, request):
+        # Can only add blocks if they have access to at least one domain
+        return filter_queryset_by_domain(Page.objects.all(), request.user).exists()
+    
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            # Check if user has access to the page's domain
+            user_domains = get_user_domains(request.user)
+            return obj.page.domain in user_domains
+        return True
+    
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            # Check if user has access to the page's domain
+            user_domains = get_user_domains(request.user)
+            return obj.page.domain in user_domains
+        return False
 
 
 @admin.register(PageImage)
@@ -73,3 +114,44 @@ class PageImageAdmin(admin.ModelAdmin):
     list_display = ('alt_text', 'page', 'uploaded_at')
     list_filter = ('uploaded_at', 'page')
     search_fields = ('alt_text', 'page__title')
+    readonly_fields = ('uploaded_at',)
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if not request.user.is_staff:
+            return qs.none()
+        # Filter images to only those on pages the user has access to
+        return qs.filter(page__domain__in=filter_queryset_by_domain(
+            Page.objects.all(), request.user
+        ).values_list('domain', flat=True))
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'page':
+            # Only show pages from domains the user has access to
+            kwargs["queryset"] = filter_queryset_by_domain(
+                Page.objects.all(),
+                request.user
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
+    def has_add_permission(self, request):
+        # Can only add images if they have access to at least one domain
+        return filter_queryset_by_domain(Page.objects.all(), request.user).exists()
+    
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            # Check if user has access to the page's domain
+            user_domains = get_user_domains(request.user)
+            return obj.page.domain in user_domains
+        return True
+    
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            # Check if user has access to the page's domain
+            user_domains = get_user_domains(request.user)
+            return obj.page.domain in user_domains
+        return False
