@@ -77,6 +77,12 @@ def homepage_view(request):
         'images': homepage.images.all(),
         'navbar_pages': navbar_qs
     }
+    
+    # Use template_name if available, otherwise fall back to template_file or default
     if homepage.template:
-        return render(request, homepage.template.template_file.name, context)
+        if homepage.template.template_name:
+            return render(request, homepage.template.template_name, context)
+        elif homepage.template.template_file:
+            return render(request, homepage.template.template_file.name, context)
+    
     return render(request, 'pages/page_detail.html', context)

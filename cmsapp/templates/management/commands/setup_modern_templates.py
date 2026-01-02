@@ -88,6 +88,7 @@ class Command(BaseCommand):
                 defaults={
                     'description': template_data['description'],
                     'layout_type': template_data['layout_type'],
+                    'template_name': template_data['template_path'],
                     'is_active': True,
                 }
             )

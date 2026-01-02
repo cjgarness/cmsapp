@@ -39,7 +39,14 @@ class PageTemplate(models.Model):
     layout_type = models.CharField(max_length=20, choices=LAYOUT_CHOICES, default='single-column')
     template_file = models.FileField(
         upload_to='templates/',
-        help_text='Django template file with .html extension'
+        help_text='Django template file with .html extension',
+        blank=True,
+        null=True
+    )
+    template_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Path to template file (e.g., "modern/page_detail.html")'
     )
     thumbnail = models.ImageField(upload_to='templates/thumbnails/', blank=True, null=True)
     
