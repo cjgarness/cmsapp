@@ -90,7 +90,7 @@
                         </dd>
                         {% if page.author %}
                             <dt class="col-6">Author:</dt>
-                            <dd class="col-6">{{ page.author.get_full_name|default:page.author.username }}</dd>
+                            <dd class="col-6">{{ page.author }}</dd>
                         {% endif %}
                         {% if page.published_at %}
                             <dt class="col-6">Published:</dt>
