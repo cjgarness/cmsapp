@@ -1,0 +1,84 @@
+{% extends 'modern/base.html' %}
+{% load static %}
+
+{% block title %}{{ page.title }} - AltusPath{% endblock %}
+
+{% block meta_description %}{{ page.description }}{% endblock %}
+
+{% block content %}
+<article class="page-detail">
+    <!-- Hero Section -->
+    {% if page.featured_image %}
+    <section class="hero-section" style="background-image: url('{{ page.featured_image.url }}');">
+        <div class="hero-overlay">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>{{ page.title }}</h1>
+                    {% if page.description %}
+                    <p class="hero-subtitle">{{ page.description }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% else %}
+    <section class="page-header">
+        <div class="container">
+            <h1>{{ page.title }}</h1>
+            {% if page.description %}
+            <p class="page-subtitle">{{ page.description }}</p>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Page Content -->
+    <section class="page-content">
+        <div class="container">
+            {% if page.content %}
+            <div class="main-content-area">
+                {{ page.content|safe }}
+            </div>
+            {% endif %}
+
+            <!-- Page Blocks -->
+            {% if blocks %}
+            <div class="page-blocks">
+                {% for block in blocks %}
+                <div class="page-block block-{{ block.block_type }}">
+                    {% if block.title %}
+                    <h3>{{ block.title }}</h3>
+                    {% endif %}
+                    {{ block.content|safe }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Page Images -->
+            {% if images %}
+            <div class="page-images">
+                <h3>Images</h3>
+                <div class="images-grid">
+                    {% for image in images %}
+                    <figure class="image-item">
+                        <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" loading="lazy">
+                        <figcaption>{{ image.alt_text }}</figcaption>
+                    </figure>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Published Info -->
+    <div class="page-meta">
+        <div class="container">
+            <p class="meta-info">
+                Last updated: <time datetime="{{ page.updated_at|date:'c' }}">{{ page.updated_at|date:'F d, Y' }}</time>
+            </p>
+        </div>
+    </div>
+</article>
+{% endblock %}

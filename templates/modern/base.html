@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AltusPath CMS{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Welcome to AltusPath{% endblock %}">
+    
+    {% block extra_meta %}{% endblock %}
+    
+    <link rel="stylesheet" href="{% static 'css/modern-base.css' %}">
+    {% block extra_css %}{% endblock %}
+    
+    {% if page.stylesheets.all %}
+        {% for stylesheet in page.stylesheets.all %}
+            <link rel="stylesheet" href="{{ stylesheet.css_file.url }}">
+        {% endfor %}
+    {% endif %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <a href="{% url 'pages:homepage' %}" class="nav-logo">
+                    <span class="logo-text">AltusPath</span>
+                </a>
+                
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="{% url 'pages:homepage' %}" class="nav-link">Home</a></li>
+                    <li><a href="{% url 'pages:page_list' %}" class="nav-link">Pages</a></li>
+                    {% if navbar_pages %}
+                        {% for page in navbar_pages %}
+                            <li><a href="{{ page.get_absolute_url }}" class="nav-link">{{ page.title }}</a></li>
+                        {% endfor %}
+                    {% endif %}
+                    <li><a href="{% url 'contact:contact' %}" class="nav-link nav-link-primary">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>AltusPath</h4>
+                    <p>Building modern web experiences with nature-inspired design.</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="{% url 'pages:homepage' %}">Home</a></li>
+                        <li><a href="{% url 'pages:page_list' %}">Pages</a></li>
+                        <li><a href="{% url 'contact:contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Contact Info</h4>
+                    <p>Email: <a href="mailto:info@altuspath.com">info@altuspath.com</a></p>
+                    <p>Phone: <a href="tel:+17637225833">(763) 722-5833</a></p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 AltusPath. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/modern-nav.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

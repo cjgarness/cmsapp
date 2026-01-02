@@ -1,0 +1,71 @@
+{% extends 'modern/base.html' %}
+{% load static %}
+
+{% block title %}Pages - AltusPath{% endblock %}
+
+{% block content %}
+<section class="pages-list-section">
+    <div class="container">
+        <div class="section-header">
+            <h1>Our Pages</h1>
+            <p>Explore our collection of content and resources.</p>
+        </div>
+
+        {% if pages %}
+        <div class="pages-grid">
+            {% for page in pages %}
+            <article class="page-card">
+                {% if page.featured_image %}
+                <div class="page-card-image">
+                    <img src="{{ page.featured_image.url }}" alt="{{ page.title }}" loading="lazy">
+                </div>
+                {% else %}
+                <div class="page-card-image placeholder">
+                    <div class="placeholder-content">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="page-card-content">
+                    <h3><a href="{{ page.get_absolute_url }}">{{ page.title }}</a></h3>
+                    <p class="page-description">{{ page.description|truncatewords:20 }}</p>
+                    
+                    <div class="page-card-footer">
+                        <span class="page-date">{{ page.published_at|date:'M d, Y' }}</span>
+                        <a href="{{ page.get_absolute_url }}" class="read-more">Read More →</a>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page=1" class="pagination-link">« First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="pagination-link">‹ Previous</a>
+            {% endif %}
+
+            <span class="pagination-info">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="pagination-link">Next ›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-link">Last »</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="no-pages">
+            <p>No pages available at the moment.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

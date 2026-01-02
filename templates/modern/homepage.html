@@ -1,0 +1,54 @@
+{% extends 'modern/base.html' %}
+{% load static %}
+
+{% block title %}Home - AltusPath{% endblock %}
+
+{% block content %}
+<section class="hero-full">
+    <div class="hero-background">
+        <div class="hero-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="hero-main">
+            <h1 class="hero-title">Welcome to AltusPath</h1>
+            <p class="hero-text">Discover modern web solutions built with nature-inspired design and sustainable practices.</p>
+            <div class="hero-buttons">
+                <a href="{% url 'pages:page_list' %}" class="btn btn-primary">Explore Pages</a>
+                <a href="{% url 'contact:contact' %}" class="btn btn-secondary">Get in Touch</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if blocks %}
+<section class="homepage-blocks">
+    {% for block in blocks %}
+    <div class="block-section block-{{ block.block_type }}">
+        <div class="container">
+            {% if block.title %}
+            <h2>{{ block.title }}</h2>
+            {% endif %}
+            <div class="block-content">
+                {{ block.content|safe }}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</section>
+{% endif %}
+
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h2>Ready to Get Started?</h2>
+            <p>Let's work together to create something amazing.</p>
+            <a href="{% url 'contact:contact' %}" class="btn btn-primary">Contact Us Today</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
