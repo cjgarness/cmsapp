@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import Domain, DomainPermission, DomainSetting
+from .utils import get_user_domains, get_user_permissions_for_domain
 
 
 @admin.register(Domain)
@@ -46,6 +47,35 @@ class DomainAdmin(admin.ModelAdmin):
         count = obj.user_permissions.filter(is_active=True).count()
         return count
     user_count.short_description = 'Active Users'
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        # Non-superusers can only see domains they have admin permissions for
+        user_domains = get_user_domains(request.user)
+        admin_domains = []
+        for domain in user_domains:
+            perm = get_user_permissions_for_domain(request.user, domain)
+            if perm and perm.has_admin_permission():
+                admin_domains.append(domain.id)
+        return qs.filter(id__in=admin_domains)
+    
+    def has_add_permission(self, request):
+        # Only superusers can add domains
+        return request.user.is_superuser
+    
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            perm = get_user_permissions_for_domain(request.user, obj)
+            return perm and perm.has_admin_permission()
+        return True
+    
+    def has_delete_permission(self, request, obj=None):
+        # Only superusers can delete domains
+        return request.user.is_superuser
 
 
 @admin.register(DomainPermission)
@@ -84,6 +114,59 @@ class DomainPermissionAdmin(admin.ModelAdmin):
             obj.get_role_display()
         )
     role_badge.short_description = 'Role'
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        # Non-superusers can only see permissions for domains they have admin access to
+        user_domains = get_user_domains(request.user)
+        admin_domains = []
+        for domain in user_domains:
+            perm = get_user_permissions_for_domain(request.user, domain)
+            if perm and perm.has_admin_permission():
+                admin_domains.append(domain.id)
+        return qs.filter(domain__id__in=admin_domains)
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'domain' and not request.user.is_superuser:
+            # Limit domain choices to those the user has admin access to
+            user_domains = get_user_domains(request.user)
+            admin_domains = []
+            for domain in user_domains:
+                perm = get_user_permissions_for_domain(request.user, domain)
+                if perm and perm.has_admin_permission():
+                    admin_domains.append(domain.id)
+            kwargs["queryset"] = Domain.objects.filter(id__in=admin_domains)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
+    def has_add_permission(self, request):
+        # Only superusers and domain admins can add permissions
+        if request.user.is_superuser:
+            return True
+        # Check if user has admin role on any domain
+        user_domains = get_user_domains(request.user)
+        for domain in user_domains:
+            perm = get_user_permissions_for_domain(request.user, domain)
+            if perm and perm.has_admin_permission():
+                return True
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            perm = get_user_permissions_for_domain(request.user, obj.domain)
+            return perm and perm.has_admin_permission()
+        return True
+    
+    def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            perm = get_user_permissions_for_domain(request.user, obj.domain)
+            return perm and perm.has_admin_permission()
+        return False
 
 
 @admin.register(DomainSetting)
@@ -120,8 +203,48 @@ class DomainSettingAdmin(admin.ModelAdmin):
         }),
     )
     
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        # Non-superusers can only see settings for domains they have admin access to
+        user_domains = get_user_domains(request.user)
+        admin_domains = []
+        for domain in user_domains:
+            perm = get_user_permissions_for_domain(request.user, domain)
+            if perm and perm.has_admin_permission():
+                admin_domains.append(domain.id)
+        return qs.filter(domain__id__in=admin_domains)
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'domain' and not request.user.is_superuser:
+            # Limit domain choices to those the user has admin access to
+            user_domains = get_user_domains(request.user)
+            admin_domains = []
+            for domain in user_domains:
+                perm = get_user_permissions_for_domain(request.user, domain)
+                if perm and perm.has_admin_permission():
+                    admin_domains.append(domain.id)
+            kwargs["queryset"] = Domain.objects.filter(id__in=admin_domains)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
     def has_add_permission(self, request):
-        # Can only add settings if there's a domain without settings
+        if request.user.is_superuser:
+            return True
+        # Check if user has admin role on any domain
+        user_domains = get_user_domains(request.user)
+        for domain in user_domains:
+            perm = get_user_permissions_for_domain(request.user, domain)
+            if perm and perm.has_admin_permission():
+                return True
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
+        if obj:
+            perm = get_user_permissions_for_domain(request.user, obj.domain)
+            return perm and perm.has_admin_permission()
         return True
     
     def has_delete_permission(self, request, obj=None):
