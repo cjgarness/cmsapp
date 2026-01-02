@@ -10,11 +10,19 @@ class PageListView(ListView):
     paginate_by = 10
     
     def get_queryset(self):
-        return Page.objects.filter(status='published', show_in_menu=True, show_in_page_list=True).order_by('-published_at')
+        domain = getattr(self.request, 'domain', None)
+        qs = Page.objects.filter(status='published', show_in_menu=True, show_in_page_list=True)
+        if domain:
+            qs = qs.filter(domain=domain)
+        return qs.order_by('-published_at')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['navbar_pages'] = Page.objects.filter(show_in_navbar=True, status='published')
+        domain = getattr(self.request, 'domain', None)
+        navbar_qs = Page.objects.filter(show_in_navbar=True, status='published')
+        if domain:
+            navbar_qs = navbar_qs.filter(domain=domain)
+        context['navbar_pages'] = navbar_qs
         return context
 
 
@@ -25,27 +33,49 @@ class PageDetailView(DetailView):
     slug_field = 'slug'
     
     def get_queryset(self):
-        return Page.objects.filter(status='published')
+        domain = getattr(self.request, 'domain', None)
+        qs = Page.objects.filter(status='published')
+        if domain:
+            qs = qs.filter(domain=domain)
+        return qs
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         page = self.get_object()
+        domain = getattr(self.request, 'domain', None)
+        navbar_qs = Page.objects.filter(show_in_navbar=True, status='published')
+        if domain:
+            navbar_qs = navbar_qs.filter(domain=domain)
         context['blocks'] = page.blocks.all().order_by('order')
         context['stylesheets'] = page.stylesheets.all()
         context['images'] = page.images.all()
-        context['navbar_pages'] = Page.objects.filter(show_in_navbar=True, status='published')
+        context['navbar_pages'] = navbar_qs
         return context
 
 
 def homepage_view(request):
     """Display the homepage."""
-    homepage = get_object_or_404(Page, is_homepage=True, status='published')
+    domain = getattr(request, 'domain', None)
+    
+    # Filter by domain if available
+    try:
+        if domain:
+            homepage = get_object_or_404(Page, is_homepage=True, status='published', domain=domain)
+        else:
+            homepage = get_object_or_404(Page, is_homepage=True, status='published')
+    except:
+        homepage = get_object_or_404(Page, is_homepage=True, status='published')
+    
+    navbar_qs = Page.objects.filter(show_in_navbar=True, status='published')
+    if domain:
+        navbar_qs = navbar_qs.filter(domain=domain)
+    
     context = {
         'page': homepage,
         'blocks': homepage.blocks.all().order_by('order'),
         'stylesheets': homepage.stylesheets.all(),
         'images': homepage.images.all(),
-        'navbar_pages': Page.objects.filter(show_in_navbar=True, status='published')
+        'navbar_pages': navbar_qs
     }
     if homepage.template:
         return render(request, homepage.template.template_file.name, context)

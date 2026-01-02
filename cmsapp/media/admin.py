@@ -2,18 +2,30 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Count
 from .models import MediaFolder, MediaFile, MediaGallery
+from cmsapp.domains.utils import filter_queryset_by_domain, get_user_domains
 
 
 @admin.register(MediaFolder)
 class MediaFolderAdmin(admin.ModelAdmin):
-    list_display = ('name', 'parent', 'file_count', 'created_at')
-    list_filter = ('created_at', 'parent')
+    list_display = ('name', 'domain', 'parent', 'file_count', 'created_at')
+    list_filter = ('domain', 'created_at', 'parent')
     search_fields = ('name', 'description')
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ('created_at', 'updated_at')
     
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'domain' and not request.user.is_superuser:
+            kwargs["queryset"] = get_user_domains(request.user)
+        if db_field.name == 'parent':
+            kwargs["queryset"] = filter_queryset_by_domain(
+                db_field.remote_field.model.objects.all(),
+                request.user
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
     def get_queryset(self, request):
         qs = super().get_queryset(request)
+        qs = filter_queryset_by_domain(qs, request.user)
         return qs.annotate(files_count=Count('files'))
     
     def file_count(self, obj):
@@ -25,16 +37,30 @@ class MediaFolderAdmin(admin.ModelAdmin):
 @admin.register(MediaFile)
 class MediaFileAdmin(admin.ModelAdmin):
     list_display = (
-        'thumbnail_preview', 'title', 'media_type', 'folder', 
+        'thumbnail_preview', 'title', 'domain', 'media_type', 'folder', 
         'file_size_display', 'usage_count', 'uploaded_at'
     )
-    list_filter = ('media_type', 'folder', 'uploaded_at')
+    list_filter = ('domain', 'media_type', 'folder', 'uploaded_at')
     search_fields = ('title', 'description', 'tags', 'alt_text')
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = (
         'file_preview', 'uploaded_at', 'updated_at', 'file_size', 
         'file_extension', 'width', 'height', 'last_used'
     )
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return filter_queryset_by_domain(qs, request.user)
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'domain' and not request.user.is_superuser:
+            kwargs["queryset"] = get_user_domains(request.user)
+        if db_field.name == 'folder':
+            kwargs["queryset"] = filter_queryset_by_domain(
+                db_field.remote_field.model.objects.all(),
+                request.user
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
     
     fieldsets = (
         ('Basic Information', {
