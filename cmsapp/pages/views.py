@@ -5,9 +5,12 @@ from .models import Page
 
 class PageListView(ListView):
     model = Page
-    template_name = 'pages/page_list.html'
     context_object_name = 'pages'
     paginate_by = 10
+    
+    def get_template_names(self):
+        """Return domain-specific template if available, otherwise default."""
+        return ['modern/page_list.html', 'pages/page_list.html']
     
     def get_queryset(self):
         domain = getattr(self.request, 'domain', None)
@@ -28,9 +31,16 @@ class PageListView(ListView):
 
 class PageDetailView(DetailView):
     model = Page
-    template_name = 'pages/page_detail.html'
     context_object_name = 'page'
     slug_field = 'slug'
+    
+    def get_template_names(self):
+        """Return domain-specific template if available, otherwise default."""
+        page = self.get_object()
+        # If page has a template assigned, use it
+        if page.template and page.template.template_name:
+            return [page.template.template_name, 'modern/page_detail.html', 'pages/page_detail.html']
+        return ['modern/page_detail.html', 'pages/page_detail.html']
     
     def get_queryset(self):
         domain = getattr(self.request, 'domain', None)
