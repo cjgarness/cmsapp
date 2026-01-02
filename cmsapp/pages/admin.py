@@ -37,6 +37,9 @@ class PageAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
+        # For non-staff, this shouldn't happen, but just in case
+        if not request.user.is_staff:
+            return qs.none()
         return filter_queryset_by_domain(qs, request.user)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
