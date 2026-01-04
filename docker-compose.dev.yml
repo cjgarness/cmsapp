@@ -53,6 +53,21 @@ services:
     networks:
       - cmsapp_network
 
+  # Nginx Reverse Proxy for Development
+  nginx:
+    image: nginx:alpine
+    container_name: cmsapp_nginx_dev
+    volumes:
+      - ./nginx.dev.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    networks:
+      - cmsapp_network
+
 volumes:
   postgres_data:
   static_volume:
