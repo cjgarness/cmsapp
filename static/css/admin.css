@@ -1,0 +1,37 @@
+/* CKEditor 5 Text Color Adjustments */
+.ck-editor__editable {
+    color: #333 !important;
+}
+
+.ck-editor__editable p {
+    color: #333 !important;
+}
+
+.ck-content {
+    color: #333 !important;
+}
+
+/* CKEditor toolbar styling */
+.ck.ck-toolbar {
+    background: #f5f5f5;
+    border-color: #ddd;
+}
+
+.ck.ck-toolbar .ck-toolbar__items {
+    background: #f5f5f5;
+}
+
+/* Make sure text is visible in CKEditor input areas */
+.ck-editor__editable * {
+    color: #333 !important;
+}
+
+/* Ensure font weight for better visibility */
+.ck-editor__editable {
+    font-weight: 400;
+}
+
+/* Link color adjustments in editor */
+.ck-editor__editable a {
+    color: #0066cc !important;
+}

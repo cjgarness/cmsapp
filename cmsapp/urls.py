@@ -6,6 +6,10 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+# Customize admin site
+admin.site.site_header = "CMS Administration"
+admin.site.site_title = "CMS Admin"
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('ckeditor5/', include('django_ckeditor_5.urls')),

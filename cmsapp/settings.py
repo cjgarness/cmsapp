@@ -165,8 +165,14 @@ CKEDITOR_5_CONFIGS = {
     'default': {
         'toolbar': ['heading', '|', 'bold', 'italic', 'link',
                     'bulletedList', 'numberedList', 'blockQuote', 'imageUpload', ],
+        'ui': {
+            'viewportOffset': 10,
+        }
     },
     'extends': {
+        'ui': {
+            'viewportOffset': 10,
+        },
         'blockToolbar': [
             'paragraph', 'heading1', 'heading2', 'heading3',
             '|',
