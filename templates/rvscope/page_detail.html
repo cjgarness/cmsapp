@@ -8,9 +8,6 @@
     <div class="row mb-5">
         <div class="col-12">
             <h1 class="mb-3">{{ page.title }}</h1>
-            {% if page.published_at %}
-                <p class="text-muted">Published on {{ page.published_at|date:"F j, Y" }}</p>
-            {% endif %}
         </div>
     </div>
     
@@ -53,6 +50,13 @@
                             </div>
                         {% endfor %}
                     </div>
+                </div>
+            {% endif %}
+            
+            <!-- Published Date -->
+            {% if page.published_at %}
+                <div class="mt-5 pt-4 border-top">
+                    <p class="text-muted small">Published on {{ page.published_at|date:"F j, Y" }}</p>
                 </div>
             {% endif %}
         </div>
