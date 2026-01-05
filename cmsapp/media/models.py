@@ -19,6 +19,17 @@ def get_default_domain():
     return domain.id
 
 
+def get_domain_media_path(instance, filename):
+    """
+    Generate domain-specific upload path for media files.
+    Format: media/{domain_name}/{year}/{month}/{filename}
+    """
+    domain_name = instance.domain.name if instance.domain else 'default'
+    from django.utils.timezone import now
+    date = now()
+    return f'media/{domain_name}/{date.strftime("%Y/%m")}/{filename}'
+
+
 class MediaFolder(models.Model):
     """Organize media files into folders."""
     
@@ -88,7 +99,7 @@ class MediaFile(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, blank=True)
     description = models.TextField(blank=True)
-    file = models.FileField(upload_to='media_library/%Y/%m/')
+    file = models.FileField(upload_to=get_domain_media_path)
     media_type = models.CharField(max_length=20, choices=MEDIA_TYPES, default='other')
     folder = models.ForeignKey(
         MediaFolder, 

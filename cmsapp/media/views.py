@@ -16,6 +16,11 @@ class MediaLibraryView(ListView):
     def get_queryset(self):
         qs = MediaFile.objects.all()
         
+        # Filter by current domain
+        current_domain = getattr(self.request, 'domain', None)
+        if current_domain:
+            qs = qs.filter(domain=current_domain)
+        
         # Filter by media type
         media_type = self.request.GET.get('type')
         if media_type:
@@ -35,7 +40,14 @@ class MediaLibraryView(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['folders'] = MediaFolder.objects.all()
+        current_domain = getattr(self.request, 'domain', None)
+        
+        # Filter folders by current domain
+        if current_domain:
+            context['folders'] = MediaFolder.objects.filter(domain=current_domain)
+        else:
+            context['folders'] = MediaFolder.objects.all()
+        
         context['current_folder'] = self.request.GET.get('folder')
         context['current_type'] = self.request.GET.get('type')
         context['search_query'] = self.request.GET.get('search', '')
