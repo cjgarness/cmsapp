@@ -14,16 +14,12 @@
         </div>
     </div>
     
-    {% if page.featured_image %}
-        <div class="row mb-5">
-            <div class="col-12">
-                <img src="{{ page.featured_image.url }}" alt="{{ page.title }}" class="img-fluid rounded shadow-sm" loading="lazy">
-            </div>
-        </div>
-    {% endif %}
-    
     <div class="row">
         <div class="col-12">
+            {% if page.featured_image %}
+                <img src="{{ page.featured_image.url }}" alt="{{ page.title }}" class="img-fluid rounded shadow-sm float-start me-4 mb-3" style="max-width: 300px; width: 100%;" loading="lazy">
+            {% endif %}
+            
             <!-- Page Content -->
             <div class="page-content mb-5">
                 {{ page.content|safe }}
