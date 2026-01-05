@@ -152,6 +152,12 @@ class DomainSetting(models.Model):
         blank=True,
         help_text="Custom JavaScript for this domain"
     )
+
+    # Navigation
+    show_pages_link = models.BooleanField(
+        default=True,
+        help_text="Show the Pages link in the navigation bar"
+    )
     
     google_analytics_id = models.CharField(
         max_length=50,

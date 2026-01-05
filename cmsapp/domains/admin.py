@@ -186,6 +186,7 @@ class DomainSettingAdmin(admin.ModelAdmin):
                 'enable_contact_form',
                 'enable_comments',
                 'enable_search',
+                'show_pages_link',
             ),
         }),
         ('Customization', {
