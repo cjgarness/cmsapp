@@ -80,6 +80,10 @@ echo "Waiting for database to be ready..."
 sleep 15
 
 echo ""
+echo "Creating new migrations..."
+docker compose -f docker-compose.prod.yml exec -T web python manage.py makemigrations
+
+echo ""
 echo "Running database migrations..."
 docker compose -f docker-compose.prod.yml exec -T web python manage.py migrate
 

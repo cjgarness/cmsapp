@@ -159,6 +159,12 @@ class DomainSetting(models.Model):
         help_text="Show the Pages link in the navigation bar"
     )
     
+    # Visual Customization
+    show_background_watermark = models.BooleanField(
+        default=True,
+        help_text="Show background watermark image on all pages"
+    )
+    
     google_analytics_id = models.CharField(
         max_length=50,
         blank=True,

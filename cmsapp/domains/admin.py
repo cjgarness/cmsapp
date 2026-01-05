@@ -189,6 +189,11 @@ class DomainSettingAdmin(admin.ModelAdmin):
                 'show_pages_link',
             ),
         }),
+        ('Visual Customization', {
+            'fields': (
+                'show_background_watermark',
+            ),
+        }),
         ('Customization', {
             'fields': (
                 'custom_css',
