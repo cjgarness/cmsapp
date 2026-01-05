@@ -13,6 +13,14 @@
     <!-- Custom RVScope styles -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     
+    {% if not show_background_watermark %}
+    <style>
+        main::before {
+            display: none !important;
+        }
+    </style>
+    {% endif %}
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
