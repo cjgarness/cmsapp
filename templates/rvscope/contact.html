@@ -58,31 +58,10 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                {{ form.company.label_tag }}
-                                {{ form.company }}
-                                {% if form.company.errors %}
-                                    <div class="alert alert-danger mt-2">{{ form.company.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
                                 {{ form.inquiry_type.label_tag }}
                                 {{ form.inquiry_type }}
                                 {% if form.inquiry_type.errors %}
                                     <div class="alert alert-danger mt-2">{{ form.inquiry_type.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                {{ form.subject.label_tag }}
-                                {{ form.subject }}
-                                {% if form.subject.errors %}
-                                    <div class="alert alert-danger mt-2">{{ form.subject.errors }}</div>
                                 {% endif %}
                             </div>
                         </div>

@@ -27,7 +27,6 @@ class ContactInquiry(models.Model):
     name = models.CharField(max_length=200)
     email = models.EmailField()
     phone = models.CharField(max_length=20, blank=True, null=True)
-    company = models.CharField(max_length=200, blank=True, null=True)
     
     # Inquiry details
     inquiry_type = models.CharField(
@@ -35,7 +34,6 @@ class ContactInquiry(models.Model):
         choices=INQUIRY_TYPE_CHOICES,
         default='question'
     )
-    subject = models.CharField(max_length=300)
     message = models.TextField()
     
     # Status tracking
@@ -63,7 +61,7 @@ class ContactInquiry(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.name} - {self.subject}"
+        return f"{self.name} - {self.get_inquiry_type_display()}"
     
     def mark_as_read(self):
         """Mark inquiry as read."""
@@ -75,7 +73,7 @@ class ContactInquiry(models.Model):
     def send_confirmation_email(self):
         """Send confirmation email to the inquirer."""
         try:
-            subject = f"We received your inquiry: {self.subject}"
+            subject = f"We received your {self.get_inquiry_type_display().lower()} inquiry"
             message = f"""
 Dear {self.name},
 
@@ -83,7 +81,6 @@ Thank you for contacting us! We have received your inquiry and will get back to 
 
 Inquiry Details:
 - Type: {self.get_inquiry_type_display()}
-- Subject: {self.subject}
 - Date: {self.created_at.strftime('%B %d, %Y at %I:%M %p')}
 
 We appreciate your interest and look forward to assisting you.

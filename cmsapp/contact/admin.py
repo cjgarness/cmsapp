@@ -11,12 +11,12 @@ class ContactInquiryAdmin(admin.ModelAdmin):
         'name',
         'email',
         'inquiry_type_badge',
-        'subject_short',
+        'message_preview',
         'status_badge',
         'created_at',
     ]
     list_filter = ['status', 'inquiry_type', 'created_at']
-    search_fields = ['name', 'email', 'subject', 'message']
+    search_fields = ['name', 'email', 'message']
     readonly_fields = [
         'created_at',
         'updated_at',
@@ -26,10 +26,10 @@ class ContactInquiryAdmin(admin.ModelAdmin):
     ]
     fieldsets = (
         ('Contact Information', {
-            'fields': ('name', 'email', 'phone', 'company')
+            'fields': ('name', 'email', 'phone')
         }),
         ('Inquiry Details', {
-            'fields': ('inquiry_type', 'subject', 'formatted_message')
+            'fields': ('inquiry_type', 'formatted_message')
         }),
         ('Status & Notes', {
             'fields': ('status', 'admin_notes')
@@ -73,9 +73,10 @@ class ContactInquiryAdmin(admin.ModelAdmin):
         )
     status_badge.short_description = 'Status'
     
-    def subject_short(self, obj):
-        return obj.subject[:50] + '...' if len(obj.subject) > 50 else obj.subject
-    subject_short.short_description = 'Subject'
+    def message_preview(self, obj):
+        content = obj.message or ''
+        return (content[:50] + '...') if len(content) > 50 else content
+    message_preview.short_description = 'Message'
     
     def formatted_message(self, obj):
         return format_html('<p style="white-space: pre-wrap;">{}</p>', obj.message)

@@ -75,7 +75,7 @@ def send_admin_notification(inquiry, config):
     print('Sending admin notification...')
     """Send notification email to admin about new inquiry."""
     try:
-        subject = f"New {inquiry.get_inquiry_type_display()}: {inquiry.subject}"
+        subject = f"New {inquiry.get_inquiry_type_display()} from {inquiry.name}"
         
         message = f"""
 A new contact inquiry has been received:
@@ -83,9 +83,7 @@ A new contact inquiry has been received:
 Name: {inquiry.name}
 Email: {inquiry.email}
 Phone: {inquiry.phone or 'Not provided'}
-Company: {inquiry.company or 'Not provided'}
 Type: {inquiry.get_inquiry_type_display()}
-Subject: {inquiry.subject}
 
 Message:
 {inquiry.message}
@@ -126,7 +124,6 @@ def send_sms_notification(inquiry, config):
         # Compose SMS message
         sms_body = (
             f"New {inquiry.get_inquiry_type_display()} from {inquiry.name}\n"
-            f"Subject: {inquiry.subject}\n"
             f"Email: {inquiry.email}\n"
             f"Check admin panel for details."
         )

@@ -24,7 +24,7 @@ class ContactFormTestCase(TestCase):
         """Test that contact form page loads successfully."""
         response = self.client.get(self.contact_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'contact/contact.html')
+        self.assertTemplateUsed(response, 'modern/contact.html')
 
     def test_contact_form_submission(self):
         """Test successful contact form submission."""
@@ -32,9 +32,7 @@ class ContactFormTestCase(TestCase):
             'name': 'John Doe',
             'email': 'john@example.com',
             'phone': '+1234567890',
-            'company': 'Test Company',
             'inquiry_type': 'service',
-            'subject': 'Test Inquiry',
             'message': 'This is a test inquiry message.',
         }
         
@@ -54,7 +52,6 @@ class ContactFormTestCase(TestCase):
             'name': '',  # Required
             'email': '',  # Required
             'inquiry_type': 'question',
-            'subject': '',  # Required
             'message': '',  # Required
         }
         
@@ -76,7 +73,7 @@ class ContactFormTestCase(TestCase):
         """Test thank you page loads correctly."""
         response = self.client.get(self.thank_you_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'contact/thank_you.html')
+        self.assertTemplateUsed(response, 'modern/thank_you.html')
 
     def test_inquiry_status_tracking(self):
         """Test inquiry status tracking functionality."""
@@ -84,7 +81,6 @@ class ContactFormTestCase(TestCase):
             name='Jane Doe',
             email='jane@example.com',
             inquiry_type='question',
-            subject='Status Test',
             message='Testing status tracking.',
             status='new'
         )

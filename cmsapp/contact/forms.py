@@ -7,7 +7,7 @@ class ContactForm(forms.ModelForm):
     
     class Meta:
         model = ContactInquiry
-        fields = ['name', 'email', 'phone', 'company', 'inquiry_type', 'subject', 'message']
+        fields = ['name', 'email', 'phone', 'inquiry_type', 'message']
         widgets = {
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -23,17 +23,8 @@ class ContactForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Your Phone Number (Optional)',
             }),
-            'company': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Your Company (Optional)',
-            }),
             'inquiry_type': forms.Select(attrs={
                 'class': 'form-select',
-                'required': True,
-            }),
-            'subject': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Subject of Your Inquiry',
                 'required': True,
             }),
             'message': forms.Textarea(attrs={

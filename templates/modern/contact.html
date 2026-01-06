@@ -42,10 +42,18 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="id_subject" class="form-label">{{ form.subject.label }}</label>
-                        {{ form.subject }}
-                        {% if form.subject.errors %}
-                        <span class="form-error">{{ form.subject.errors.0 }}</span>
+                        <label for="id_phone" class="form-label">{{ form.phone.label }}</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                        <span class="form-error">{{ form.phone.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="id_inquiry_type" class="form-label">{{ form.inquiry_type.label }}</label>
+                        {{ form.inquiry_type }}
+                        {% if form.inquiry_type.errors %}
+                        <span class="form-error">{{ form.inquiry_type.errors.0 }}</span>
                         {% endif %}
                     </div>
 
