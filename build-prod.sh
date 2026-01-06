@@ -172,8 +172,8 @@ else
 fi
 
 # Create log directory if it doesn't exist
-mkdir -p /var/log/cmsapp
-chmod 755 /var/log/cmsapp
+sudo mkdir -p /var/log/cmsapp
+sudo chmod 755 /var/log/cmsapp
 
 echo ""
 echo "======================================"
