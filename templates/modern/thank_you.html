@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Thank You - CMS{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="thank-you-wrapper text-center">
+                <div class="success-icon mb-4">
+                    <i class="fas fa-check-circle" style="font-size: 4rem; color: #2ecc71;"></i>
+                </div>
+
+                <h1 class="mb-3">Thank You!</h1>
+
+                <p class="lead mb-4">
+                    Your inquiry has been successfully received. We appreciate you reaching out to us.
+                </p>
+
+                <div class="alert alert-info mb-4">
+                    <p class="mb-0">
+                        We'll review your message and respond to your email address as soon as possible. 
+                        Thank you for your patience!
+                    </p>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="{% url 'pages:homepage' %}" class="btn btn-primary btn-lg me-2">
+                        Back to Home
+                    </a>
+                    <a href="{% url 'contact:contact' %}" class="btn btn-outline-primary btn-lg">
+                        Send Another Message
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .thank-you-wrapper {
+        padding: 3rem 2rem;
+        background: rgba(229, 231, 235, 0.6);
+        border-radius: 0.75rem;
+        border-left: 4px solid #2ecc71;
+    }
+
+    .success-icon {
+        animation: bounce 0.6s;
+    }
+
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .action-buttons {
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
