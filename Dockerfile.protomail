@@ -1,0 +1,113 @@
+# Custom ProtonMail Bridge with Password Manager
+# Extends the shenxn/protonmail-bridge image to include a password manager for credential storage
+
+FROM shenxn/protonmail-bridge:latest
+
+# Install pass (password store) and its dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pass \
+    gpg \
+    gnupg2 \
+    pwgen \
+    expect \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a minimal GPG setup for pass to work without user interaction
+ENV GNUPGHOME=/home/protonmail/.gnupg
+RUN mkdir -p $GNUPGHOME && chmod 700 $GNUPGHOME
+
+# Initialize pass store directory
+RUN mkdir -p /home/protonmail/.password-store && \
+    chmod 700 /home/protonmail/.password-store
+
+# Set up pass to work with the ProtonMail Bridge
+ENV PASSWORD_STORE_DIR=/home/protonmail/.password-store
+
+# Generate a GPG key for pass initialization  
+# This script will be called before protonmail-bridge starts
+COPY <<EOF /usr/local/bin/init-pass.sh
+#!/bin/bash
+
+export GNUPGHOME=/home/protonmail/.gnupg
+export PASSWORD_STORE_DIR=/home/protonmail/.password-store
+
+echo "=== Initializing ProtonMail Bridge Password Manager ==="
+
+# Check if GPG key exists, if not create one
+EXISTING_KEYS=$(gpg --batch --list-secret-keys 2>/dev/null | grep -c "ProtonMail Bridge" || echo "0")
+
+if [ "$EXISTING_KEYS" -eq 0 ]; then
+    echo "[1/3] Generating GPG key for ProtonMail Bridge..."
+    gpg --batch --generate-key <<'GPGEOF'
+%echo Generating a basic OpenPGP key for ProtonMail Bridge
+Key-Type: RSA
+Key-Length: 2048
+Name-Real: ProtonMail Bridge
+Name-Email: bridge@protonmail.local
+Expire-Date: 0
+%no-ask-passphrase
+%no-protection
+%commit
+%echo done
+GPGEOF
+    echo "[1/3] GPG key generated"
+else
+    echo "[1/3] GPG key already exists"
+fi
+
+# Extract GPG key ID using a simpler method - get the fingerprint
+echo "[2/3] Extracting GPG key ID..."
+GPG_ID=$(gpg --batch --list-secret-keys --with-colons 2>/dev/null | grep "^fpr" | cut -d: -f10 | head -1)
+
+if [ -n "$GPG_ID" ]; then
+    echo "Found GPG fingerprint: $GPG_ID"
+else
+    echo "WARNING: Could not extract GPG key ID"
+fi
+
+# Initialize pass if not already done
+if [ ! -f "$PASSWORD_STORE_DIR/.gpg-id" ]; then
+    if [ -n "$GPG_ID" ]; then
+        echo "[3/3] Initializing pass password store with key: $GPG_ID"
+        mkdir -p "$PASSWORD_STORE_DIR"
+        echo "$GPG_ID" > "$PASSWORD_STORE_DIR/.gpg-id"
+        echo "[3/3] Pass store initialized successfully!"
+    else
+        echo "ERROR: Could not find GPG key ID, but continuing anyway..."
+        # Try to use the key directly without .gpg-id
+        GPG_ID=$(gpg --batch --list-keys --with-colons 2>/dev/null | grep "^sec" | cut -d: -f5 | head -1)
+        if [ -n "$GPG_ID" ]; then
+            echo "Using GPG key: $GPG_ID"
+            mkdir -p "$PASSWORD_STORE_DIR"
+            echo "$GPG_ID" > "$PASSWORD_STORE_DIR/.gpg-id"
+        fi
+    fi
+else
+    echo "[3/3] Pass store already initialized"
+fi
+
+echo "=== Password Manager Initialization Complete ==="
+EOF
+
+RUN chmod +x /usr/local/bin/init-pass.sh
+
+# Create a wrapper script for the entrypoint
+COPY <<EOF /usr/local/bin/entrypoint-wrapper.sh
+#!/bin/bash
+set -e
+
+# Initialize pass before starting ProtonMail Bridge
+/usr/local/bin/init-pass.sh
+
+echo "Starting ProtonMail Bridge..."
+# Run the original entrypoint
+exec bash /protonmail/entrypoint.sh "$@"
+EOF
+
+RUN chmod +x /usr/local/bin/entrypoint-wrapper.sh
+
+# Fix permissions for the protonmail home directory
+RUN chown -R 1000:1000 /home/protonmail 2>/dev/null || true
+
+# Use the wrapper as the entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint-wrapper.sh"]

@@ -53,6 +53,27 @@ services:
     networks:
       - cmsapp_network
 
+  # Protomail Bridge for Email Sending
+  protomail:
+    build:
+      context: .
+      dockerfile: Dockerfile.protomail
+    container_name: cmsapp_protomail_dev
+    ports:
+      - "1143:1143"
+      - "1025:1025"
+    volumes:
+      - protomail_data:/home/protonmail/.config/protonmail-bridge
+      - protomail_gnupg:/home/protonmail/.gnupg
+      - protomail_pass:/home/protonmail/.password-store
+    environment:
+      - BRIDGE_ADDRESS=0.0.0.0
+      - BRIDGE_PORT=1025
+      - BRIDGE_IMAPS_PORT=1143
+    restart: unless-stopped
+    networks:
+      - cmsapp_network
+
   # Nginx Reverse Proxy for Development
   nginx:
     image: nginx:alpine
@@ -72,6 +93,9 @@ volumes:
   postgres_data:
   static_volume:
   media_volume:
+  protomail_data:
+  protomail_gnupg:
+  protomail_pass:
 
 networks:
   cmsapp_network:
