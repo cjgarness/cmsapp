@@ -142,6 +142,14 @@ class DomainSetting(models.Model):
     enable_contact_form = models.BooleanField(default=True)
     enable_comments = models.BooleanField(default=False)
     enable_search = models.BooleanField(default=True)
+    enable_alert_email = models.BooleanField(
+        default=True,
+        help_text="Send email alerts to this domain's contact email"
+    )
+    enable_alert_sms = models.BooleanField(
+        default=False,
+        help_text="Send SMS alerts to this domain's contact phone"
+    )
     
     # Customization
     custom_css = models.TextField(

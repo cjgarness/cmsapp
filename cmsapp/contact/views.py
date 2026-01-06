@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
+from cmsapp.domains.models import DomainSetting
 from .models import ContactInquiry, ContactConfiguration
 from .forms import ContactForm
 
@@ -11,6 +10,10 @@ from .forms import ContactForm
 def contact(request):
     """Contact form view with domain-specific templates."""
     config = ContactConfiguration.get_config()
+    domain = getattr(request, 'domain', None)
+    domain_settings = None
+    if domain:
+        domain_settings, _ = DomainSetting.objects.get_or_create(domain=domain)
     print('Configuration:')
     print(config)
     
@@ -29,12 +32,11 @@ def contact(request):
             if config.send_confirmation_email:
                 inquiry.send_confirmation_email()
             
-            # Send notification email to admin
-            send_admin_notification(inquiry, config)
+            # Send alert email to admin if enabled
+            inquiry.send_alert_email(config, domain, domain_settings)
             
             # Send SMS notification if enabled
-            if config.enable_sms_notifications:
-                send_sms_notification(inquiry, config)
+            inquiry.send_sms_notification(config, domain, domain_settings)
             
             # Show success message
             messages.success(
@@ -52,7 +54,6 @@ def contact(request):
     }
     
     # Use domain-specific template
-    domain = getattr(request, 'domain', None)
     if domain and domain.name == 'rvscope.com':
         return render(request, 'rvscope/contact.html', context)
     
@@ -70,80 +71,3 @@ def thank_you(request):
         'page_title': 'Thank You',
     })
 
-
-def send_admin_notification(inquiry, config):
-    print('Sending admin notification...')
-    """Send notification email to admin about new inquiry."""
-    try:
-        subject = f"New {inquiry.get_inquiry_type_display()} from {inquiry.name}"
-        
-        message = f"""
-A new contact inquiry has been received:
-
-Name: {inquiry.name}
-Email: {inquiry.email}
-Phone: {inquiry.phone or 'Not provided'}
-Type: {inquiry.get_inquiry_type_display()}
-
-Message:
-{inquiry.message}
-
----
-You can respond to this inquiry in the Django admin panel.
-        """
-        
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [config.admin_email],
-            fail_silently=True,
-        )
-    except Exception as e:
-        print(f"Error sending admin notification: {e}")
-
-
-def send_sms_notification(inquiry, config):
-    """Send SMS notification to admin about new inquiry using Twilio."""
-    print('Sending SMS notification...')
-    if not config.enable_sms_notifications or not config.sms_phone_number:
-        print('SMS notifications not enabled or phone number not configured')
-        return False
-    
-    # Check if Twilio credentials are configured
-    if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_AUTH_TOKEN or not settings.TWILIO_PHONE_NUMBER:
-        print('Twilio credentials not configured in settings')
-        return False
-    
-    try:
-        from twilio.rest import Client
-        
-        # Initialize Twilio client
-        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        
-        # Compose SMS message
-        sms_body = (
-            f"New {inquiry.get_inquiry_type_display()} from {inquiry.name}\n"
-            f"Email: {inquiry.email}\n"
-            f"Check admin panel for details."
-        )
-        
-        # Send SMS
-        message = client.messages.create(
-            body=sms_body,
-            from_=settings.TWILIO_PHONE_NUMBER,
-            to=config.sms_phone_number
-        )
-        
-        print(f"SMS sent successfully. SID: {message.sid}")
-        return True
-        
-    except ImportError:
-        print("Twilio package not installed. Run: pip install twilio")
-        return False
-    except Exception as e:
-        print(f"Error sending SMS notification: {e}")
-        return False
-        return False
-    
-    return True

@@ -97,6 +97,107 @@ The {settings.SITE_NAME if hasattr(settings, 'SITE_NAME') else 'CMS'} Team
         except Exception as e:
             print(f"Error sending confirmation email: {e}")
 
+    def send_alert_email(self, config, domain=None, domain_settings=None):
+        """Send email alert to admin about new inquiry."""
+        print('Sending alert email...')
+
+        # Domain-level toggle and email take precedence when available
+        domain_email_enabled = domain_settings.enable_alert_email if domain_settings else False
+        domain_email = domain.contact_email if domain else None
+
+        if domain_settings is not None:
+            if not domain_email_enabled or not domain_email:
+                print('Domain email alerts disabled or email not set; skipping')
+                return False
+            recipient_email = domain_email
+        else:
+            if not config.admin_email:
+                print('Admin email not configured')
+                return False
+            recipient_email = config.admin_email
+
+        try:
+            subject = f"New {self.get_inquiry_type_display()} Inquiry from {self.name}"
+            message = f"""
+A new inquiry has been submitted:
+
+From: {self.name}
+Email: {self.email}
+Phone: {self.phone or 'Not provided'}
+Type: {self.get_inquiry_type_display()}
+Date: {self.created_at.strftime('%B %d, %Y at %I:%M %p')}
+
+Message:
+{self.message}
+
+---
+You can review this inquiry in the admin panel.
+            """
+
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [recipient_email],
+                fail_silently=True,
+            )
+            print(f"Alert email sent to {recipient_email}")
+            return True
+        except Exception as e:
+            print(f"Error sending alert email: {e}")
+            return False
+
+    def send_sms_notification(self, config, domain=None, domain_settings=None):
+        """Send SMS alert to admin about new inquiry using Twilio."""
+        print('Sending SMS notification...')
+
+        # Domain-level toggle and phone take precedence when available
+        domain_sms_enabled = domain_settings.enable_alert_sms if domain_settings else False
+        domain_phone = domain.contact_phone if domain else None
+
+        if domain_settings is not None:
+            if not domain_sms_enabled or not domain_phone:
+                print('Domain SMS alerts disabled or phone not set; skipping')
+                return False
+            target_number = domain_phone
+        else:
+            if not config.enable_sms_notifications or not config.sms_phone_number:
+                print('SMS notifications not enabled or phone number not configured')
+                return False
+            target_number = config.sms_phone_number
+
+        # Check Twilio credentials
+        if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_AUTH_TOKEN or not settings.TWILIO_PHONE_NUMBER:
+            print('Twilio credentials not configured in settings')
+            return False
+
+        try:
+            from twilio.rest import Client
+
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+
+            sms_body = (
+                f"New {self.get_inquiry_type_display()} from {self.name}\n"
+                f"Email: {self.email}\n"
+                f"Check admin panel for details."
+            )
+
+            message = client.messages.create(
+                body=sms_body,
+                from_=settings.TWILIO_PHONE_NUMBER,
+                to=target_number
+            )
+
+            print(f"SMS sent successfully. SID: {message.sid}")
+            return True
+
+        except ImportError:
+            print("Twilio package not installed. Run: pip install twilio")
+            return False
+        except Exception as e:
+            print(f"Error sending SMS notification: {e}")
+            return False
+
 
 class ContactConfiguration(models.Model):
     """Configuration for contact form notifications."""
