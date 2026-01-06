@@ -2,5 +2,8 @@
 # Ensure PATH includes binaries
 PATH=/usr/bin:/usr/sbin:/bin:/sbin
 
+# Daily database backup at 2:00 AM
+0 2 * * * /app/backup-db-prod.sh >> /var/log/cmsapp/backup.log 2>&1
+
 # Renew certificates daily at 03:30 and reload nginx if anything changed
 30 3 * * * certbot renew --quiet && nginx -s reload
