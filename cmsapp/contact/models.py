@@ -9,10 +9,8 @@ class ContactInquiry(models.Model):
     
     INQUIRY_TYPE_CHOICES = [
         ('question', 'General Question'),
-        ('service', 'Service Inquiry'),
-        ('support', 'Support Request'),
+        ('service', 'SSchedule Service'),
         ('feedback', 'Feedback'),
-        ('partnership', 'Partnership Inquiry'),
         ('other', 'Other'),
     ]
     
