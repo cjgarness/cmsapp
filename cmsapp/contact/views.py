@@ -23,10 +23,12 @@ def contact(request):
         return redirect('pages:homepage')
     
     if request.method == 'POST':
-        form = ContactForm(request.POST)
+        form = ContactForm(request.POST, domain=domain)
         if form.is_valid():
             # Save the inquiry to database
-            inquiry = form.save()
+            inquiry = form.save(commit=False)
+            inquiry.domain = domain  # Set the domain
+            inquiry.save()
             
             # Send confirmation email to inquirer if enabled
             if config.send_confirmation_email:
@@ -46,7 +48,7 @@ def contact(request):
             )
             return redirect('contact:thank_you')
     else:
-        form = ContactForm()
+        form = ContactForm(domain=domain)
     
     context = {
         'form': form,

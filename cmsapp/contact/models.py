@@ -2,17 +2,51 @@ from django.db import models
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
+from cmsapp.domains.models import Domain
+
+
+class InquiryType(models.Model):
+    """Inquiry type options manageable per domain."""
+    
+    domain = models.ForeignKey(
+        Domain,
+        on_delete=models.CASCADE,
+        related_name='inquiry_types'
+    )
+    slug = models.SlugField(
+        max_length=50,
+        help_text="Internal identifier for this inquiry type"
+    )
+    label = models.CharField(
+        max_length=100,
+        help_text="Display name for this inquiry type"
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        help_text="Display order in dropdown"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Enable/disable this inquiry type"
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['order', 'label']
+        unique_together = ('domain', 'slug')
+        verbose_name_plural = 'Inquiry Types'
+        indexes = [
+            models.Index(fields=['domain', 'is_active']),
+        ]
+    
+    def __str__(self):
+        return f"{self.domain.name} - {self.label}"
 
 
 class ContactInquiry(models.Model):
     """Model to store contact form submissions."""
-    
-    INQUIRY_TYPE_CHOICES = [
-        ('question', 'General Question'),
-        ('service', 'Schedule Service'),
-        ('feedback', 'Feedback'),
-        ('other', 'Other'),
-    ]
     
     STATUS_CHOICES = [
         ('new', 'New'),
@@ -27,11 +61,22 @@ class ContactInquiry(models.Model):
     phone = models.CharField(max_length=20, blank=True, null=True)
     
     # Inquiry details
-    inquiry_type = models.CharField(
-        max_length=20,
-        choices=INQUIRY_TYPE_CHOICES,
-        default='question'
+    domain = models.ForeignKey(
+        Domain,
+        on_delete=models.CASCADE,
+        related_name='contact_inquiries',
+        null=True,
+        blank=True
     )
+    inquiry_type = models.ForeignKey(
+        InquiryType,
+        on_delete=models.PROTECT,
+        related_name='inquiries',
+        null=True,
+        blank=True
+    )
+    # DEPRECATED: keeping old inquiry_type CharField for backwards compatibility
+    # This is now the inquiry_type above (ForeignKey)
     message = models.TextField()
     
     # Status tracking
@@ -55,11 +100,12 @@ class ContactInquiry(models.Model):
         verbose_name_plural = 'Contact Inquiries'
         indexes = [
             models.Index(fields=['-created_at']),
+            models.Index(fields=['domain', 'status']),
             models.Index(fields=['status']),
         ]
     
     def __str__(self):
-        return f"{self.name} - {self.get_inquiry_type_display()}"
+        return f"{self.name} - {self.inquiry_type.label} ({self.domain.name})"
     
     def mark_as_read(self):
         """Mark inquiry as read."""
@@ -71,14 +117,14 @@ class ContactInquiry(models.Model):
     def send_confirmation_email(self):
         """Send confirmation email to the inquirer."""
         try:
-            subject = f"We received your {self.get_inquiry_type_display().lower()} inquiry"
+            subject = f"We received your {self.inquiry_type.label.lower()} inquiry"
             message = f"""
 Dear {self.name},
 
 Thank you for contacting us! We have received your inquiry and will get back to you as soon as possible.
 
 Inquiry Details:
-- Type: {self.get_inquiry_type_display()}
+- Type: {self.inquiry_type.label}
 - Date: {self.created_at.strftime('%B %d, %Y at %I:%M %p')}
 
 We appreciate your interest and look forward to assisting you.
@@ -103,7 +149,7 @@ The {settings.SITE_NAME if hasattr(settings, 'SITE_NAME') else 'CMS'} Team
 
         # Domain-level toggle and email take precedence when available
         domain_email_enabled = domain_settings.enable_alert_email if domain_settings else False
-        domain_email = domain.contact_email if domain else None
+        domain_email = self.domain.contact_email if self.domain else None
 
         if domain_settings is not None:
             if not domain_email_enabled or not domain_email:
@@ -117,14 +163,14 @@ The {settings.SITE_NAME if hasattr(settings, 'SITE_NAME') else 'CMS'} Team
             recipient_email = config.admin_email
 
         try:
-            subject = f"New {self.get_inquiry_type_display()} Inquiry from {self.name}"
+            subject = f"New {self.inquiry_type.label} Inquiry from {self.name}"
             message = f"""
 A new inquiry has been submitted:
 
 From: {self.name}
 Email: {self.email}
 Phone: {self.phone or 'Not provided'}
-Type: {self.get_inquiry_type_display()}
+Type: {self.inquiry_type.label}
 Date: {self.created_at.strftime('%B %d, %Y at %I:%M %p')}
 
 Message:
@@ -153,7 +199,7 @@ You can review this inquiry in the admin panel.
 
         # Domain-level toggle and phone take precedence when available
         domain_sms_enabled = domain_settings.enable_alert_sms if domain_settings else False
-        domain_phone = domain.contact_phone if domain else None
+        domain_phone = self.domain.contact_phone if self.domain else None
 
         if domain_settings is not None:
             if not domain_sms_enabled or not domain_phone:
@@ -177,7 +223,7 @@ You can review this inquiry in the admin panel.
             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 
             sms_body = (
-                f"New {self.get_inquiry_type_display()} from {self.name}\n"
+                f"New {self.inquiry_type.label} from {self.name}\n"
                 f"Email: {self.email}\n"
                 f"Check admin panel for details."
             )

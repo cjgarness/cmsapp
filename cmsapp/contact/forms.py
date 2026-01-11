@@ -1,5 +1,5 @@
 from django import forms
-from .models import ContactInquiry
+from .models import ContactInquiry, InquiryType
 
 
 class ContactForm(forms.ModelForm):
@@ -34,3 +34,17 @@ class ContactForm(forms.ModelForm):
                 'required': True,
             }),
         }
+    
+    def __init__(self, *args, domain=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if domain:
+            # Filter inquiry types by domain and active status
+            self.fields['inquiry_type'].queryset = InquiryType.objects.filter(
+                domain=domain,
+                is_active=True
+            ).order_by('order', 'label')
+        else:
+            # If no domain provided, show all active inquiry types
+            self.fields['inquiry_type'].queryset = InquiryType.objects.filter(
+                is_active=True
+            ).order_by('domain__name', 'order', 'label')

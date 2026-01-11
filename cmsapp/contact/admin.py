@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.db.models import Q
-from .models import ContactInquiry, ContactConfiguration
+from django.utils import timezone
+from .models import ContactInquiry, ContactConfiguration, InquiryType
 
 
 @admin.register(ContactInquiry)
@@ -15,7 +16,7 @@ class ContactInquiryAdmin(admin.ModelAdmin):
         'status_badge',
         'created_at',
     ]
-    list_filter = ['status', 'inquiry_type', 'created_at']
+    list_filter = ['domain', 'status', 'inquiry_type', 'created_at']
     search_fields = ['name', 'email', 'message']
     readonly_fields = [
         'created_at',
@@ -29,7 +30,7 @@ class ContactInquiryAdmin(admin.ModelAdmin):
             'fields': ('name', 'email', 'phone')
         }),
         ('Inquiry Details', {
-            'fields': ('inquiry_type', 'formatted_message')
+            'fields': ('domain', 'inquiry_type', 'formatted_message')
         }),
         ('Status & Notes', {
             'fields': ('status', 'admin_notes')
@@ -42,19 +43,21 @@ class ContactInquiryAdmin(admin.ModelAdmin):
     actions = ['mark_as_read', 'mark_as_responded', 'mark_as_closed']
     
     def inquiry_type_badge(self, obj):
-        colors = {
-            'question': '#3498db',
-            'service': '#2ecc71',
-            'support': '#e74c3c',
-            'feedback': '#f39c12',
-            'partnership': '#9b59b6',
-            'other': '#95a5a6',
+        # Use a hash of the inquiry type slug to generate a consistent color
+        color_map = {
+            0: '#3498db',
+            1: '#2ecc71',
+            2: '#e74c3c',
+            3: '#f39c12',
+            4: '#9b59b6',
+            5: '#95a5a6',
         }
-        color = colors.get(obj.inquiry_type, '#95a5a6')
+        color_index = hash(obj.inquiry_type.slug) % 6
+        color = color_map.get(color_index, '#95a5a6')
         return format_html(
             '<span style="background-color: {}; color: white; padding: 3px 8px; border-radius: 3px;">{}</span>',
             color,
-            obj.get_inquiry_type_display()
+            obj.inquiry_type.label
         )
     inquiry_type_badge.short_description = 'Type'
     
@@ -142,5 +145,29 @@ class ContactConfigurationAdmin(admin.ModelAdmin):
         return False
 
 
-# Import timezone at the top
-from django.utils import timezone
+@admin.register(InquiryType)
+class InquiryTypeAdmin(admin.ModelAdmin):
+    list_display = ['label', 'domain', 'slug', 'order', 'is_active', 'created_at']
+    list_filter = ['domain', 'is_active', 'created_at']
+    search_fields = ['label', 'slug', 'domain__name']
+    readonly_fields = ['created_at', 'updated_at']
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('domain', 'label', 'slug')
+        }),
+        ('Display', {
+            'fields': ('order', 'is_active')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_queryset(self, request):
+        """Filter inquiry types by domain if user has domain restrictions."""
+        qs = super().get_queryset(request)
+        # If using multi-domain middleware, filter by user's domains
+        if hasattr(request, 'domain'):
+            qs = qs.filter(domain=request.domain)
+        return qs
