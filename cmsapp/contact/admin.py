@@ -43,6 +43,12 @@ class ContactInquiryAdmin(admin.ModelAdmin):
     actions = ['mark_as_read', 'mark_as_responded', 'mark_as_closed']
     
     def inquiry_type_badge(self, obj):
+        # Handle None inquiry_type
+        if not obj.inquiry_type:
+            return format_html(
+                '<span style="background-color: #95a5a6; color: white; padding: 3px 8px; border-radius: 3px;">Unknown</span>'
+            )
+        
         # Use a hash of the inquiry type slug to generate a consistent color
         color_map = {
             0: '#3498db',

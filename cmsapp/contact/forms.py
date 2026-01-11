@@ -48,3 +48,19 @@ class ContactForm(forms.ModelForm):
             self.fields['inquiry_type'].queryset = InquiryType.objects.filter(
                 is_active=True
             ).order_by('domain__name', 'order', 'label')
+    
+    def save(self, commit=True):
+        """Override save to populate inquiry_type_old from inquiry_type."""
+        instance = super().save(commit=False)
+        
+        # Populate inquiry_type_old with the slug of the selected inquiry_type
+        if instance.inquiry_type:
+            instance.inquiry_type_old = instance.inquiry_type.slug
+        else:
+            instance.inquiry_type_old = 'general'
+        
+        if commit:
+            instance.save()
+        
+        return instance
+

@@ -76,7 +76,12 @@ class ContactInquiry(models.Model):
         blank=True
     )
     # DEPRECATED: keeping old inquiry_type CharField for backwards compatibility
-    # This is now the inquiry_type above (ForeignKey)
+    # This field stores the original text value and will be removed in future migration
+    inquiry_type_old = models.CharField(
+        max_length=50,
+        default='general',
+        help_text="Deprecated: Use inquiry_type ForeignKey instead"
+    )
     message = models.TextField()
     
     # Status tracking
@@ -105,7 +110,9 @@ class ContactInquiry(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.name} - {self.inquiry_type.label} ({self.domain.name})"
+        inquiry_type_label = self.inquiry_type.label if self.inquiry_type else "Unknown Type"
+        domain_name = self.domain.name if self.domain else "Unknown Domain"
+        return f"{self.name} - {inquiry_type_label} ({domain_name})"
     
     def mark_as_read(self):
         """Mark inquiry as read."""
