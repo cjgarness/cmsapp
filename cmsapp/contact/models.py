@@ -42,7 +42,7 @@ class InquiryType(models.Model):
         ]
     
     def __str__(self):
-        return f"{self.domain.name} - {self.label}"
+        return self.label
 
 
 class ContactInquiry(models.Model):
