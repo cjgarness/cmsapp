@@ -75,13 +75,6 @@ class ContactInquiry(models.Model):
         null=True,
         blank=True
     )
-    # DEPRECATED: keeping old inquiry_type CharField for backwards compatibility
-    # This field stores the original text value and will be removed in future migration
-    inquiry_type_old = models.CharField(
-        max_length=50,
-        default='general',
-        help_text="Deprecated: Use inquiry_type ForeignKey instead"
-    )
     message = models.TextField()
     
     # Status tracking
